@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
 
-const APPS_SCRIPT_URL = import.meta.env.VITE_APPS_SCRIPT_URL ?? ''
 
 type TimeSlot = '11시 30분' | '12시 30분'
 
@@ -36,7 +35,9 @@ const STYLES = `
 
 const TOAST_DURATION = 3500
 
-function Toast({ message, onDismiss }: { message: string; onDismiss: () => void }) {
+type ToastVariant = 'success' | 'error'
+
+function Toast({ message, variant = 'success', onDismiss }: { message: string; variant?: ToastVariant; onDismiss: () => void }) {
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const [exiting, setExiting] = useState(false)
 
@@ -93,17 +94,17 @@ function Toast({ message, onDismiss }: { message: string; onDismiss: () => void 
           display: 'flex',
           alignItems: 'flex-start',
           gap: '0.75rem',
-          backgroundColor: 'var(--color-fill)',
+          backgroundColor: variant === 'error' ? '#b05050' : 'var(--color-fill)',
           color: '#ffffff',
           padding: '0.75rem 1.25rem',
           fontSize: '0.8125rem',
           fontWeight: 300,
-          border: '1px solid var(--color-fill)',
+          border: `1px solid ${variant === 'error' ? '#b05050' : 'var(--color-fill)'}`,
           letterSpacing: '0.01em',
           wordBreak: 'keep-all',
         }}
       >
-        <span style={{ opacity: 0.6, fontSize: '0.75rem' }}>✓</span>
+        <span style={{ opacity: 0.6, fontSize: '0.75rem' }}>{variant === 'error' ? '!' : '✓'}</span>
         {message}
         <button
           onClick={dismiss}
@@ -137,8 +138,7 @@ export default function RSVPForm() {
   const [selected, setSelected] = useState<TimeSlot | null>(null)
   const [guestCount, setGuestCount] = useState('')
   const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState(false)
-  const [toastMsg, setToastMsg] = useState<string | null>(null)
+  const [toast, setToast] = useState<{ message: string; variant: ToastVariant } | null>(null)
   const [extraVisible, setExtraVisible] = useState(false)
 
   useEffect(() => {
@@ -154,33 +154,32 @@ export default function RSVPForm() {
   const handleSubmit = async () => {
     if (!canSubmit) return
     setIsLoading(true)
-    setError(false)
+
+    const submittedName = name.trim()
 
     try {
-      // mode: 'no-cors' — Apps Script POST goes through a redirect that
-      // drops CORS headers, causing fetch to throw in all modern browsers.
-      // With no-cors we get an opaque response (unreadable) but no error.
-      await fetch(APPS_SCRIPT_URL, {
+      const res = await fetch('/api/submit', {
         method: 'POST',
-        mode: 'no-cors',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          name: name.trim(),
+          name: submittedName,
           timeSlot: selected,
           guestCount: guestCount.trim() === '' ? '0' : guestCount,
           submittedAt: new Date().toISOString(),
         }),
       })
 
+      if (!res.ok) throw new Error('server error')
+
       // Reset form
       setName('')
       setSelected(null)
       setGuestCount('')
 
-      // Show toast
       const guests = guestCount && guestCount !== '0' ? ` +${guestCount}명` : ''
-      setToastMsg(`${name.trim()} · ${selected}${guests} 참석이 확인되었습니다.`)
+      setToast({ message: `${submittedName} · ${selected}${guests} 참석이 확인되었습니다.`, variant: 'success' })
     } catch {
-      setError(true)
+      setToast({ message: '오류가 발생했습니다. 잠시 후 다시 시도해주세요.', variant: 'error' })
     } finally {
       setIsLoading(false)
     }
@@ -287,20 +286,15 @@ export default function RSVPForm() {
             {isLoading ? <span style={{ opacity: 0.45 }}>확인 중…</span> : '참석 확인'}
           </button>
 
-          {error && (
-            <p className="text-xs text-center" style={{ color: '#c0392b' }}>
-              오류가 발생했습니다. 다시 시도해주세요.
-            </p>
-          )}
-
         </div>
       </div>
 
       {/* Toast */}
-      {toastMsg && (
+      {toast && (
         <Toast
-          message={toastMsg}
-          onDismiss={() => setToastMsg(null)}
+          message={toast.message}
+          variant={toast.variant}
+          onDismiss={() => setToast(null)}
         />
       )}
     </>
