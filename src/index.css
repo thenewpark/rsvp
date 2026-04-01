@@ -1,0 +1,40 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --color-border: #e0e0e0;
+  --color-text: #111111;
+  --color-text-muted: #888888;
+  --color-bg: #ffffff;
+  --color-fill: #111111;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  font-family: 'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+}
+
+/* Prevent Safari auto-zoom on input focus (triggered when font-size < 16px).
+   !important needed to override Tailwind utility class specificity. */
+input, textarea, select {
+  font-size: 16px !important;
+}
+
+/* Respect reduced motion: keep opacity, remove transforms */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

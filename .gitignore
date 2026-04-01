@@ -1,0 +1,7 @@
+dist
+.agents
+.claude
+node_modules
+google-apps-script.gs
+.env
+skills-lock.json
