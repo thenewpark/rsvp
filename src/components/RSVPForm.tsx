@@ -375,14 +375,15 @@ export default function RSVPForm() {
   const [toast, setToast] = useState<{ message: string; variant: ToastVariant } | null>(null)
 
   const videoRef = useRef<HTMLVideoElement>(null)
-  const heroRef = useRef<HTMLDivElement>(null)
+  const heroWrapperRef = useRef<HTMLDivElement>(null)
 
-  // GSAP: pin hero section (100dvh) while scrubbing video 5s→0s
-  // After pin completes, scroll continues naturally into section 2
+  // Use CSS sticky (not GSAP pin) for reliability.
+  // The 200dvh wrapper gives 100dvh of scroll travel while the sticky hero
+  // stays on screen. ScrollTrigger tracks wrapper progress → video scrubs 5s→0s.
   useGSAP(() => {
     const video = videoRef.current
-    const hero = heroRef.current
-    if (!video || !hero) return
+    const heroWrapper = heroWrapperRef.current
+    if (!video || !heroWrapper) return
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
 
     const create = () => {
@@ -390,10 +391,9 @@ export default function RSVPForm() {
       video.currentTime = video.duration  // start at end (5s)
 
       ScrollTrigger.create({
-        trigger: hero,
+        trigger: heroWrapper,
         start: 'top top',
-        end: '+=100%',          // 100vh of scroll travel to complete video
-        pin: true,
+        end: 'bottom bottom',   // wrapper bottom hits viewport bottom = scroll 100dvh
         scrub: true,
         invalidateOnRefresh: true,
         onUpdate: self => {
@@ -414,44 +414,48 @@ export default function RSVPForm() {
 
       <div style={{ background: 'white', margin: '0 10px' }}>
 
-        {/* ── SECTION 1: Hero — header + video, pinned, fills viewport ──────── */}
-        <section ref={heroRef} style={{
-          height: '100dvh', display: 'flex', flexDirection: 'column',
-          position: 'relative', zIndex: 1,
-        }}>
-          {/* Header */}
-          <div style={{
-            padding: '56px 32px 32px',
-            display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start',
-            gap: '16px', flexShrink: 0,
+        {/* ── SECTION 1: Hero wrapper — 200dvh creates 100dvh scroll travel ─── */}
+        <div ref={heroWrapperRef} style={{ height: '200dvh' }}>
+          {/* Sticky hero — stays on screen for the full wrapper scroll travel */}
+          <section style={{
+            position: 'sticky', top: 0,
+            height: '100dvh', display: 'flex', flexDirection: 'column',
+            background: 'white',
           }}>
-            <div className="vertical-text" style={{
-              fontSize: '11px', fontWeight: 300, lineHeight: 1.9,
-              color: 'var(--color-text)', letterSpacing: '0.03em',
-              whiteSpace: 'pre-line', flex: 1,
+            {/* Header */}
+            <div style={{
+              padding: '56px 32px 32px',
+              display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start',
+              gap: '16px', flexShrink: 0,
             }}>
-              {'기쁜 날,\n가까이서 축복해주시면\n더없는 기쁨으로\n간직하겠습니다.'}
+              <div className="vertical-text" style={{
+                fontSize: '11px', fontWeight: 300, lineHeight: 1.9,
+                color: 'var(--color-text)', letterSpacing: '0.03em',
+                whiteSpace: 'pre-line', flex: 1,
+              }}>
+                {'기쁜 날,\n가까이서 축복해주시면\n더없는 기쁨으로\n간직하겠습니다.'}
+              </div>
+              <div className="vertical-text" style={{
+                fontSize: '22px', fontWeight: 300, letterSpacing: '0.1em',
+                color: 'var(--color-text)', whiteSpace: 'nowrap',
+              }}>
+                유진선 · 공다슬
+              </div>
             </div>
-            <div className="vertical-text" style={{
-              fontSize: '22px', fontWeight: 300, letterSpacing: '0.1em',
-              color: 'var(--color-text)', whiteSpace: 'nowrap',
-            }}>
-              유진선 · 공다슬
-            </div>
-          </div>
 
-          {/* Video — natural aspect ratio, centered in remaining space */}
-          <div style={{ flex: 1, display: 'flex', alignItems: 'flex-start' }}>
-            <video
-              ref={videoRef}
-              src="/bloom.mp4"
-              muted
-              playsInline
-              preload="auto"
-              style={{ width: '100%', height: 'auto', display: 'block', pointerEvents: 'none' }}
-            />
-          </div>
-        </section>
+            {/* Video — natural aspect ratio (0.97:1), no cropping */}
+            <div style={{ flex: 1 }}>
+              <video
+                ref={videoRef}
+                src="/bloom.mp4"
+                muted
+                playsInline
+                preload="auto"
+                style={{ width: '100%', height: 'auto', display: 'block', pointerEvents: 'none' }}
+              />
+            </div>
+          </section>
+        </div>
 
         {/* ── SECTION 2: English poem + Korean poem + 일시 ─────────────────── */}
         <section>
