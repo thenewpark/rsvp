@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, type CSSProperties } from 'react'
 import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { useGSAP } from '@gsap/react'
@@ -108,17 +108,102 @@ const koreanPoemColumns = [
 ]
 
 // ── Section label ──────────────────────────────────────────────────────────────
-function SectionLabel({ children }: { children: string }) {
+function SectionLabel({ children, animate = true }: { children: string; animate?: boolean }) {
+  if (!animate) {
+    return (
+      <p style={{
+        fontSize: '11px',
+        fontWeight: 300,
+        letterSpacing: '0.08em',
+        color: 'var(--color-text-muted)',
+        marginBottom: '18px',
+      }}>
+        {children}
+      </p>
+    )
+  }
+
   return (
-    <p style={{
+    <p data-word-reveal-group style={{
       fontSize: '11px',
       fontWeight: 300,
       letterSpacing: '0.08em',
       color: 'var(--color-text-muted)',
       marginBottom: '18px',
     }}>
-      {children}
+      <span style={{ display: 'block' }}>
+        <span data-word-reveal className="inline-block">{children}</span>
+      </span>
     </p>
+  )
+}
+
+function LineRevealText({
+  as: Tag = 'p',
+  lines,
+  style,
+  className,
+  lineStyle,
+}: {
+  as?: 'p' | 'div' | 'span'
+  lines: string[]
+  style?: CSSProperties
+  className?: string
+  lineStyle?: CSSProperties
+}) {
+  return (
+    <Tag data-reveal-group className={className} style={style}>
+      {lines.map((line, index) => (
+        <span
+          key={`${line}-${index}`}
+          data-reveal-line
+          style={{
+            display: 'block',
+            whiteSpace: 'pre-line',
+            ...lineStyle,
+          }}
+        >
+          {line}
+        </span>
+      ))}
+    </Tag>
+  )
+}
+
+function WordRevealText({
+  as: Tag = 'p',
+  lines,
+  style,
+  className,
+  lineStyle,
+  revealStretch = 1,
+}: {
+  as?: 'p' | 'div' | 'span'
+  lines: string[]
+  style?: CSSProperties
+  className?: string
+  lineStyle?: CSSProperties
+  revealStretch?: number
+}) {
+  return (
+    <Tag data-word-reveal-group data-reveal-stretch={revealStretch} className={className} style={style}>
+      {lines.map((line, lineIndex) => (
+        <span
+          key={`${line}-${lineIndex}`}
+          style={{
+            display: 'block',
+            whiteSpace: 'pre-line',
+            ...lineStyle,
+          }}
+        >
+          {line.split(/(\s+)/).map((part, partIndex) => (
+            /^\s+$/.test(part)
+              ? <span key={`${lineIndex}-space-${partIndex}`}>{part}</span>
+              : <span key={`${lineIndex}-word-${partIndex}`} data-word-reveal className="inline-block">{part}</span>
+          ))}
+        </span>
+      ))}
+    </Tag>
   )
 }
 
@@ -374,6 +459,7 @@ export default function RSVPForm() {
   const [modalOpen, setModalOpen] = useState(false)
   const [toast, setToast] = useState<{ message: string; variant: ToastVariant } | null>(null)
 
+  const rootRef = useRef<HTMLDivElement>(null)
   const videoRef = useRef<HTMLVideoElement>(null)
   const heroWrapperRef = useRef<HTMLDivElement>(null)
 
@@ -383,8 +469,79 @@ export default function RSVPForm() {
   useGSAP(() => {
     const video = videoRef.current
     const heroWrapper = heroWrapperRef.current
-    if (!video || !heroWrapper) return
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
+    const root = rootRef.current
+    if (!video || !heroWrapper || !root) return
+
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+
+    const lineRevealGroups = gsap.utils.toArray<HTMLElement>('[data-reveal-group]', root)
+    lineRevealGroups.forEach(group => {
+      const lines = group.querySelectorAll<HTMLElement>('[data-reveal-line]')
+      if (!lines.length) return
+
+      if (prefersReducedMotion) {
+        gsap.set(lines, { clearProps: 'all' })
+        return
+      }
+
+      gsap.set(lines, {
+        autoAlpha: 0,
+        filter: 'blur(10px)',
+        y: 18,
+        willChange: 'transform, filter, opacity',
+      })
+
+      gsap.to(lines, {
+        autoAlpha: 1,
+        filter: 'blur(0px)',
+        y: 0,
+        duration: 0.9,
+        ease: 'power2.out',
+        stagger: 0.12,
+        clearProps: 'willChange',
+        scrollTrigger: {
+          trigger: group,
+          start: 'top 84%',
+          once: true,
+        },
+      })
+    })
+
+    const wordRevealGroups = gsap.utils.toArray<HTMLElement>('[data-word-reveal-group]', root)
+    wordRevealGroups.forEach(group => {
+      const words = group.querySelectorAll<HTMLElement>('[data-word-reveal]')
+      if (!words.length) return
+      const revealStretch = Number(group.dataset.revealStretch ?? '1') || 1
+
+      if (prefersReducedMotion) {
+        gsap.set(words, { clearProps: 'all' })
+        return
+      }
+
+      gsap.set(words, {
+        opacity: 0.12,
+        filter: 'blur(4px)',
+        willChange: 'opacity, filter',
+      })
+
+      gsap.to(words, {
+        opacity: 1,
+        filter: 'blur(0px)',
+        ease: 'none',
+        stagger: 0.05,
+        scrollTrigger: {
+          trigger: group,
+          start: 'top bottom-=20%',
+          end: () => {
+            const baseDistance = Math.max(window.innerHeight * 0.52, words.length * 16)
+            return `+=${Math.round(baseDistance * revealStretch)}`
+          },
+          scrub: true,
+        },
+      })
+    })
+
+    if (prefersReducedMotion) return
 
     const setupTrigger = () => {
       video.currentTime = video.duration  // start at end (5s)
@@ -422,13 +579,13 @@ export default function RSVPForm() {
 
     if (video.readyState >= 1) create()
     else video.addEventListener('loadedmetadata', create, { once: true })
-  })
+  }, { scope: rootRef })
 
   return (
     <>
       <style>{STYLES}</style>
 
-      <div style={{ background: 'white', margin: '0 10px' }}>
+      <div ref={rootRef} style={{ background: 'white', margin: '0 10px' }}>
 
         {/* ── SECTION 1: Hero wrapper — 200dvh creates 100dvh scroll travel ─── */}
         <div ref={heroWrapperRef} style={{ height: '200dvh' }}>
@@ -440,23 +597,29 @@ export default function RSVPForm() {
           }}>
             {/* Header */}
             <div style={{
-              padding: '56px 32px 32px',
+              padding: '56px 32px 56px',
               display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start',
               gap: '16px', flexShrink: 0,
             }}>
-              <div className="vertical-text" style={{
-                fontSize: '11px', fontWeight: 300, lineHeight: 1.9,
-                color: 'var(--color-text)', letterSpacing: '0.03em',
-                whiteSpace: 'pre-line', flex: 1,
-              }}>
-                {'기쁜 날,\n가까이서 축복해주시면\n더없는 기쁨으로\n간직하겠습니다.'}
-              </div>
-              <div className="vertical-text" style={{
-                fontSize: '22px', fontWeight: 300, letterSpacing: '0.1em',
-                color: 'var(--color-text)', whiteSpace: 'nowrap',
-              }}>
-                유진선 · 공다슬
-              </div>
+              <LineRevealText
+                as="div"
+                className="vertical-text"
+                lines={['기쁜 날,', '가까이서 축복해주시면', '더없는 기쁨으로 간직하겠습니다.']}
+                style={{
+                  fontSize: '14px', fontWeight: 300, lineHeight: 1.75,
+                  color: 'var(--color-text)', letterSpacing: '-0.1',
+                  whiteSpace: 'pre-line', flex: 0,
+                }}
+              />
+              <LineRevealText
+                as="div"
+                className="vertical-text"
+                lines={['유진선  ·  공다슬']}
+                style={{
+                  fontSize: '16px', fontWeight: 600, letterSpacing: '-0.1em',
+                  color: 'var(--color-text)', whiteSpace: 'nowrap',
+                }}
+              />
             </div>
 
             {/* Video — natural aspect ratio (0.97:1), no cropping */}
@@ -477,34 +640,38 @@ export default function RSVPForm() {
         <section>
           {/* English poem */}
           <div style={{ padding: '24px 18px 18px', textAlign: 'center' }}>
-            <p style={{
-              margin: 0,
-              fontFamily: '"Cormorant Garamond", Georgia, "Times New Roman", serif',
-              fontSize: '10px',
-              fontWeight: 300,
-              letterSpacing: '0.05em',
-              lineHeight: 1.12,
-              color: '#8a8a8a',
-              textTransform: 'uppercase',
-            }}>
-              LOVE'S<br />
-              NOT TIME'S FOOL,<br />
-              THOUGH ROSY LIPS AND CHEEKS<br />
-              WITHIN HIS BENDING SICKLE'S COMPASS COME.<br />
-              LOVE ALTERS NOT WITH HIS BRIEF HOURS AND WEEKS,<br />
-              BUT BEARS IT OUT EVEN TO THE EDGE OF DOOM.
-            </p>
+            <WordRevealText
+              lines={[
+                "LOVE'S",
+                "NOT TIME'S FOOL,",
+                'THOUGH ROSY LIPS AND CHEEKS',
+                "WITHIN HIS BENDING SICKLE'S COMPASS COME.",
+                'LOVE ALTERS NOT WITH HIS BRIEF HOURS AND WEEKS,',
+                'BUT BEARS IT OUT EVEN TO THE EDGE OF DOOM.',
+              ]}
+              revealStretch={1.45}
+              style={{
+                margin: 0,
+                fontFamily: '"Cormorant Garamond", Georgia, "Times New Roman", serif',
+                fontSize: '10px',
+                fontWeight: 300,
+                letterSpacing: '0.05em',
+                lineHeight: 1.12,
+                color: '#8a8a8a',
+                textTransform: 'uppercase',
+              }}
+            />
           </div>
 
           {/* Korean poem */}
           <div style={{ padding: '2px 18px 54px' }}>
-            <div style={{
+            <div data-reveal-group style={{
               display: 'flex', flexDirection: 'row',
               alignItems: 'flex-start', justifyContent: 'center',
               gap: '12px',
             }}>
               {koreanPoemColumns.map((col, i) => (
-                <div key={i} className="vertical-text" style={{
+                <div key={i} data-reveal-line className="vertical-text" style={{
                   fontSize: '10px',
                   fontWeight: 300,
                   lineHeight: 1.05,
@@ -515,7 +682,7 @@ export default function RSVPForm() {
                   {col}
                 </div>
               ))}
-              <div style={{
+              <div data-reveal-line style={{
                 paddingTop: '2px',
                 marginLeft: '4px',
                 display: 'flex',
@@ -552,16 +719,24 @@ export default function RSVPForm() {
           {/* 일시 */}
           <div style={{ padding: '32px 28px 36px', borderTop: '1px solid var(--color-border)' }}>
             <SectionLabel>일시</SectionLabel>
-            <p style={{ fontSize: '13px', fontWeight: 300, lineHeight: 1.9, color: 'var(--color-text)', marginBottom: '20px' }}>
-              2026년 5월 23일 토요일<br />11:00 — 16:00
-            </p>
+            <WordRevealText
+              lines={['2026년 5월 23일 토요일', '11:00 — 16:00']}
+              revealStretch={1}
+              style={{ fontSize: '13px', fontWeight: 300, lineHeight: 1.9, color: 'var(--color-text)', marginBottom: '20px' }}
+            />
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr' }}>
-              <div style={{ fontSize: '12px', fontWeight: 300, lineHeight: 2, color: 'var(--color-text)' }}>
-                혼인 서약:<br />12:00
-              </div>
-              <div style={{ fontSize: '12px', fontWeight: 300, lineHeight: 2, color: 'var(--color-text)' }}>
-                식사:<br />11:30 – 14:30
-              </div>
+              <WordRevealText
+                as="div"
+                lines={['혼인 서약:', '12:00']}
+                revealStretch={1}
+                style={{ fontSize: '12px', fontWeight: 300, lineHeight: 2, color: 'var(--color-text)' }}
+              />
+              <WordRevealText
+                as="div"
+                lines={['식사:', '11:30 – 14:30']}
+                revealStretch={1}
+                style={{ fontSize: '12px', fontWeight: 300, lineHeight: 2, color: 'var(--color-text)' }}
+              />
             </div>
           </div>
         </section>
@@ -571,13 +746,17 @@ export default function RSVPForm() {
           {/* 장소 */}
           <div style={{ padding: '32px 28px 36px', borderTop: '1px solid var(--color-border)' }}>
             <SectionLabel>장소</SectionLabel>
-            <p style={{ fontSize: '13px', fontWeight: 300, lineHeight: 1.9, color: 'var(--color-text)', marginBottom: '10px' }}>
-              서울시 서대문구 연희동 95-10
-            </p>
+            <WordRevealText
+              lines={['서울시 서대문구 연희동 95-10']}
+              revealStretch={1}
+              style={{ fontSize: '13px', fontWeight: 300, lineHeight: 1.9, color: 'var(--color-text)', marginBottom: '10px' }}
+            />
             <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '12px' }}>
-              <p style={{ fontSize: '12px', fontWeight: 300, lineHeight: 1.7, color: 'var(--color-text-muted)', flex: 1 }}>
-                (도로명) 서울시 서대문구 연희로27다길 10-15
-              </p>
+              <WordRevealText
+                lines={['(도로명) 서울시 서대문구 연희로27다길 10-15']}
+                revealStretch={1}
+                style={{ fontSize: '12px', fontWeight: 300, lineHeight: 1.7, color: 'var(--color-text-muted)', flex: 1 }}
+              />
               <CopyButton text="서울시 서대문구 연희로27다길 10-15" label="주소 복사" />
             </div>
           </div>
@@ -585,13 +764,14 @@ export default function RSVPForm() {
           {/* 주차 안내 */}
           <div style={{ padding: '32px 28px 40px', borderTop: '1px solid var(--color-border)' }}>
             <SectionLabel>주차 안내</SectionLabel>
-            <p style={{
-              fontSize: '12px', fontWeight: 300, lineHeight: 1.9,
-              color: 'var(--color-text)', wordBreak: 'keep-all',
-            }}>
-              단독주택으로 주차 공간이 마련되어 있지 않습니다.<br />
-              인근 공영주차장을 이용해 주시면 감사하겠습니다.
-            </p>
+            <WordRevealText
+              lines={['단독주택으로 주차 공간이 마련되어 있지 않습니다.', '인근 공영주차장을 이용해 주시면 감사하겠습니다.']}
+              revealStretch={1}
+              style={{
+                fontSize: '12px', fontWeight: 300, lineHeight: 1.9,
+                color: 'var(--color-text)', wordBreak: 'keep-all',
+              }}
+            />
           </div>
 
           {/* lily.png */}
@@ -609,7 +789,7 @@ export default function RSVPForm() {
         <section>
           {/* 마음 전하실 곳 */}
           <div style={{ padding: '32px 28px 36px', borderTop: '1px solid var(--color-border)' }}>
-            <SectionLabel>마음 전하실 곳</SectionLabel>
+            <SectionLabel animate={false}>마음 전하실 곳</SectionLabel>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px' }}>
               <p style={{ fontSize: '13px', fontWeight: 300, color: 'var(--color-text)' }}>
                 ○○은행 000-0000000-0000000
