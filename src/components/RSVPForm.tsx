@@ -386,8 +386,7 @@ export default function RSVPForm() {
     if (!video || !heroWrapper) return
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
 
-    const create = () => {
-      video.pause()
+    const setupTrigger = () => {
       video.currentTime = video.duration  // start at end (5s)
 
       ScrollTrigger.create({
@@ -397,11 +396,28 @@ export default function RSVPForm() {
         scrub: true,
         invalidateOnRefresh: true,
         onUpdate: self => {
-          if (video.duration) {
-            video.currentTime = video.duration * (1 - self.progress)  // 5s → 0s
-          }
+          if (video.duration) video.currentTime = video.duration * (1 - self.progress)  // 5s → 0s
         },
+        // Guarantee exact position at section boundaries regardless of
+        // async seek timing or fast-scroll edge cases.
+        onLeave: () => { video.currentTime = 0 },
+        onEnterBack: () => { video.currentTime = video.duration },
       })
+    }
+
+    const create = () => {
+      // iOS Safari does not allow currentTime seeks until play() has been called
+      // at least once. Call play() to unlock seek capability, then immediately
+      // pause and position the video at the end frame.
+      const playPromise = video.play()
+      if (playPromise) {
+        playPromise
+          .then(() => { video.pause(); setupTrigger() })
+          .catch(() => { setupTrigger() })  // play blocked (e.g. policy) – try anyway
+      } else {
+        video.pause()
+        setupTrigger()
+      }
     }
 
     if (video.readyState >= 1) create()
@@ -447,7 +463,7 @@ export default function RSVPForm() {
             <div style={{ flex: 1 }}>
               <video
                 ref={videoRef}
-                src="/bloom.mp4"
+                src="/bloom_scrub.mp4"
                 muted
                 playsInline
                 preload="auto"
