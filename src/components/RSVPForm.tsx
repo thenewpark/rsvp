@@ -8,6 +8,42 @@ gsap.registerPlugin(ScrollTrigger, useGSAP)
 type TimeSlot = '11시 30분' | '12시 30분'
 type ToastVariant = 'success' | 'error'
 
+type KakaoShareConfig = {
+  objectType: 'feed'
+  content: {
+    title: string
+    description: string
+    imageUrl: string
+    link: {
+      mobileWebUrl: string
+      webUrl: string
+    }
+  }
+  buttons: Array<{
+    title: string
+    link: {
+      mobileWebUrl: string
+      webUrl: string
+    }
+  }>
+}
+
+type KakaoSDK = {
+  init: (appKey: string) => void
+  isInitialized: () => boolean
+  Share: {
+    sendDefault: (config: KakaoShareConfig) => void
+  }
+}
+
+declare global {
+  interface Window {
+    Kakao?: KakaoSDK
+  }
+}
+
+const KAKAO_SDK_SRC = 'https://t1.kakaocdn.net/kakao_js_sdk/2.7.5/kakao.min.js'
+
 const STYLES = `
   .slot-btn {
     transition: background-color 180ms ease, color 180ms ease,
@@ -458,10 +494,12 @@ function RSVPModal({ onClose, onSuccess }: {
 export default function RSVPForm() {
   const [modalOpen, setModalOpen] = useState(false)
   const [toast, setToast] = useState<{ message: string; variant: ToastVariant } | null>(null)
+  const [isKakaoReady, setIsKakaoReady] = useState(false)
 
   const rootRef = useRef<HTMLDivElement>(null)
   const videoRef = useRef<HTMLVideoElement>(null)
   const heroWrapperRef = useRef<HTMLDivElement>(null)
+  const kakaoKey = import.meta.env.VITE_KAKAO_JAVASCRIPT_KEY
 
   // Use CSS sticky (not GSAP pin) for reliability.
   // The 200dvh wrapper gives 100dvh of scroll travel while the sticky hero
@@ -580,6 +618,71 @@ export default function RSVPForm() {
     if (video.readyState >= 1) create()
     else video.addEventListener('loadedmetadata', create, { once: true })
   }, { scope: rootRef })
+
+  useEffect(() => {
+    if (!kakaoKey) return
+
+    const initializeKakao = () => {
+      if (!window.Kakao) return
+      if (!window.Kakao.isInitialized()) window.Kakao.init(kakaoKey)
+      setIsKakaoReady(true)
+    }
+
+    if (window.Kakao) {
+      initializeKakao()
+      return
+    }
+
+    const existingScript = document.querySelector<HTMLScriptElement>('script[data-kakao-sdk="true"]')
+    if (existingScript) {
+      existingScript.addEventListener('load', initializeKakao, { once: true })
+      return
+    }
+
+    const script = document.createElement('script')
+    script.src = KAKAO_SDK_SRC
+    script.async = true
+    script.dataset.kakaoSdk = 'true'
+    script.addEventListener('load', initializeKakao, { once: true })
+    document.head.appendChild(script)
+  }, [kakaoKey])
+
+  const handleKakaoShare = () => {
+    if (!kakaoKey) {
+      setToast({ message: '카카오 공유를 사용하려면 VITE_KAKAO_JAVASCRIPT_KEY 설정이 필요합니다.', variant: 'error' })
+      return
+    }
+
+    if (!window.Kakao || !isKakaoReady) {
+      setToast({ message: '카카오 공유 준비 중입니다. 잠시 후 다시 시도해주세요.', variant: 'error' })
+      return
+    }
+
+    const shareUrl = window.location.href
+    const imageUrl = new URL('/kara.jpeg', window.location.origin).toString()
+
+    window.Kakao.Share.sendDefault({
+      objectType: 'feed',
+      content: {
+        title: '귀하신 분께, 진선과 다슬의 결혼식에 초대드립니다',
+        description: '',
+        imageUrl,
+        link: {
+          mobileWebUrl: shareUrl,
+          webUrl: shareUrl,
+        },
+      },
+      buttons: [
+        {
+          title: '모바일 청첩장 보기',
+          link: {
+            mobileWebUrl: shareUrl,
+            webUrl: shareUrl,
+          },
+        },
+      ],
+    })
+  }
 
   return (
     <>
@@ -810,6 +913,26 @@ export default function RSVPForm() {
             }}
           >
             참석 의사 체크하기
+          </button>
+
+          <button
+            onClick={handleKakaoShare}
+            style={{
+              width: '100%',
+              padding: '22px 28px',
+              background: '#FEE500',
+              border: 'none',
+              cursor: 'pointer',
+              fontSize: '12px',
+              fontWeight: 400,
+              letterSpacing: '0.06em',
+              color: '#191919',
+              textAlign: 'center',
+              display: 'block',
+              borderTop: '1px solid rgba(0,0,0,0.06)',
+            }}
+          >
+            카카오톡으로 공유하기
           </button>
         </section>
 

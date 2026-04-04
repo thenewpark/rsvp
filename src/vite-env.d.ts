@@ -2,6 +2,7 @@
 
 interface ImportMetaEnv {
   readonly VITE_APPS_SCRIPT_URL: string
+  readonly VITE_KAKAO_JAVASCRIPT_KEY?: string
 }
 
 interface ImportMeta {
