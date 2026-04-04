@@ -99,12 +99,12 @@ const STYLES = `
 
 // ── Korean poem columns ────────────────────────────────────────────────────────
 const koreanPoemColumns = [
-  '사랑은', '시간의', '장대가', '아닙니다',
-  '미쁜', '마음과', '마음의', '결합에',
-  '낙이없을', '때도', '굳건합니다',
-  '사랑은', '폭풍에', '흔들리지', '않습니다',
-  '시간의', '흐름에', '휩쓸리지', '않습니다',
-  '그것을', '견뎌냅니다', '가장', '자리까지',
+  '사랑은 시간이 광대가 아닙니다.',
+  '비록 장밋빛 입술과 뺨이',
+  '시간의 낫 아래 들지라도',
+  '사랑은 세월의 흐름에 휩쓸리지 않습니다.',
+  '그러나 운명의 가장자리까지',
+  '그것을 견뎌냅니다.',
 ]
 
 // ── Section label ──────────────────────────────────────────────────────────────
@@ -476,10 +476,16 @@ export default function RSVPForm() {
         {/* ── SECTION 2: English poem + Korean poem + 일시 ─────────────────── */}
         <section>
           {/* English poem */}
-          <div style={{ padding: '56px 28px 48px', textAlign: 'center' }}>
+          <div style={{ padding: '24px 18px 18px', textAlign: 'center' }}>
             <p style={{
-              fontSize: '10px', fontWeight: 300, letterSpacing: '0.14em',
-              lineHeight: 2.4, color: 'var(--color-text)',
+              margin: 0,
+              fontFamily: '"Cormorant Garamond", Georgia, "Times New Roman", serif',
+              fontSize: '10px',
+              fontWeight: 300,
+              letterSpacing: '0.05em',
+              lineHeight: 1.12,
+              color: '#8a8a8a',
+              textTransform: 'uppercase',
             }}>
               LOVE'S<br />
               NOT TIME'S FOOL,<br />
@@ -491,29 +497,54 @@ export default function RSVPForm() {
           </div>
 
           {/* Korean poem */}
-          <div style={{ padding: '0 28px 56px' }}>
-            <div className="poem-scroll" style={{
+          <div style={{ padding: '2px 18px 54px' }}>
+            <div style={{
               display: 'flex', flexDirection: 'row',
-              alignItems: 'flex-start', gap: '16px', overflowX: 'auto',
+              alignItems: 'flex-start', justifyContent: 'center',
+              gap: '12px',
             }}>
               {koreanPoemColumns.map((col, i) => (
                 <div key={i} className="vertical-text" style={{
-                  fontSize: '11px', fontWeight: 300, lineHeight: 2,
-                  color: 'var(--color-text)', whiteSpace: 'nowrap',
-                  flexShrink: 0, letterSpacing: '0.04em',
+                  fontSize: '10px',
+                  fontWeight: 300,
+                  lineHeight: 1.05,
+                  color: '#6f6f6f',
+                  whiteSpace: 'nowrap',
+                  letterSpacing: '0.02em',
                 }}>
                   {col}
                 </div>
               ))}
-              <div style={{ flexShrink: 0, display: 'flex', gap: '10px', paddingLeft: '12px' }}>
-                <div className="vertical-text" style={{
-                  fontSize: '8px', fontWeight: 300, letterSpacing: '0.1em',
-                  color: 'var(--color-text-muted)', whiteSpace: 'nowrap',
-                }}>SONNET 116</div>
-                <div className="vertical-text" style={{
-                  fontSize: '8px', fontWeight: 300, letterSpacing: '0.1em',
-                  color: 'var(--color-text-muted)', whiteSpace: 'nowrap',
-                }}>WILLIAM SHAKESPEARE</div>
+              <div style={{
+                paddingTop: '2px',
+                marginLeft: '4px',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '2px',
+                alignItems: 'flex-start',
+                color: '#7c7c7c',
+                flexShrink: 0,
+              }}>
+                <span style={{
+                  fontFamily: '"Cormorant Garamond", Georgia, "Times New Roman", serif',
+                  fontSize: '9px',
+                  fontWeight: 400,
+                  letterSpacing: '0.04em',
+                  lineHeight: 1.15,
+                  whiteSpace: 'nowrap',
+                }}>
+                  SONNET 116,
+                </span>
+                <span style={{
+                  fontFamily: '"Cormorant Garamond", Georgia, "Times New Roman", serif',
+                  fontSize: '9px',
+                  fontWeight: 400,
+                  letterSpacing: '0.04em',
+                  lineHeight: 1.15,
+                  whiteSpace: 'nowrap',
+                }}>
+                  WILLIAM SHAKESPEARE
+                </span>
               </div>
             </div>
           </div>
