@@ -8,6 +8,42 @@ gsap.registerPlugin(ScrollTrigger, useGSAP)
 type TimeSlot = '11시 30분' | '12시 30분'
 type ToastVariant = 'success' | 'error'
 
+type KakaoShareConfig = {
+  objectType: 'feed'
+  content: {
+    title: string
+    description: string
+    imageUrl: string
+    link: {
+      mobileWebUrl: string
+      webUrl: string
+    }
+  }
+  buttons: Array<{
+    title: string
+    link: {
+      mobileWebUrl: string
+      webUrl: string
+    }
+  }>
+}
+
+type KakaoSDK = {
+  init: (appKey: string) => void
+  isInitialized: () => boolean
+  Share: {
+    sendDefault: (config: KakaoShareConfig) => void
+  }
+}
+
+declare global {
+  interface Window {
+    Kakao?: KakaoSDK
+  }
+}
+
+const KAKAO_SDK_SRC = 'https://t1.kakaocdn.net/kakao_js_sdk/2.7.5/kakao.min.js'
+
 const STYLES = `
   .slot-btn {
     transition: background-color 180ms ease, color 180ms ease,
@@ -102,6 +138,14 @@ const STYLES = `
     .rsvp-open-btn:hover { background-color: #d0d0d0 !important; }
   }
   .rsvp-open-btn:active { background-color: #c4c4c4 !important; }
+
+  .share-btn {
+    transition: background-color 180ms ease, color 180ms ease, border-color 180ms ease;
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .share-btn:hover { background-color: #f2f2f2 !important; }
+  }
+  .share-btn:active { background-color: #ebebeb !important; }
 `
 
 // ── Korean poem columns ────────────────────────────────────────────────────────
@@ -495,10 +539,12 @@ export default function RSVPForm() {
   const [modalOpen, setModalOpen] = useState(false)
   const [toast, setToast] = useState<{ message: string; variant: ToastVariant } | null>(null)
   const [isHeroVideoReady, setIsHeroVideoReady] = useState(false)
+  const [isKakaoReady, setIsKakaoReady] = useState(false)
 
   const rootRef = useRef<HTMLDivElement>(null)
   const videoRef = useRef<HTMLVideoElement>(null)
   const heroWrapperRef = useRef<HTMLDivElement>(null)
+  const kakaoKey = import.meta.env.VITE_KAKAO_JAVASCRIPT_KEY
 
   // Use CSS sticky (not GSAP pin) for reliability.
   // The 200dvh wrapper gives 100dvh of scroll travel while the sticky hero
@@ -648,11 +694,76 @@ export default function RSVPForm() {
     else video.addEventListener('loadedmetadata', create, { once: true })
   }, { scope: rootRef })
 
+  useEffect(() => {
+    if (!kakaoKey) return
+
+    const initializeKakao = () => {
+      if (!window.Kakao) return
+      if (!window.Kakao.isInitialized()) window.Kakao.init(kakaoKey)
+      setIsKakaoReady(true)
+    }
+
+    if (window.Kakao) {
+      initializeKakao()
+      return
+    }
+
+    const existingScript = document.querySelector<HTMLScriptElement>('script[data-kakao-sdk="true"]')
+    if (existingScript) {
+      existingScript.addEventListener('load', initializeKakao, { once: true })
+      return
+    }
+
+    const script = document.createElement('script')
+    script.src = KAKAO_SDK_SRC
+    script.async = true
+    script.dataset.kakaoSdk = 'true'
+    script.addEventListener('load', initializeKakao, { once: true })
+    document.head.appendChild(script)
+  }, [kakaoKey])
+
+  const handleKakaoShare = () => {
+    if (!kakaoKey) {
+      setToast({ message: '카카오 공유를 사용하려면 VITE_KAKAO_JAVASCRIPT_KEY 설정이 필요합니다.', variant: 'error' })
+      return
+    }
+
+    if (!window.Kakao || !isKakaoReady) {
+      setToast({ message: '카카오 공유 준비 중입니다. 잠시 후 다시 시도해주세요.', variant: 'error' })
+      return
+    }
+
+    const shareUrl = window.location.href
+    const imageUrl = new URL('/kara.jpeg', window.location.origin).toString()
+
+    window.Kakao.Share.sendDefault({
+      objectType: 'feed',
+      content: {
+        title: '귀하신 분께, 진선과 다슬의 결혼식에 초대드립니다',
+        description: '2026년 5월 23일 토요일 · 서울 서대문구 연희동',
+        imageUrl,
+        link: {
+          mobileWebUrl: shareUrl,
+          webUrl: shareUrl,
+        },
+      },
+      buttons: [
+        {
+          title: '모바일 청첩장 보기',
+          link: {
+            mobileWebUrl: shareUrl,
+            webUrl: shareUrl,
+          },
+        },
+      ],
+    })
+  }
+
   return (
     <>
       <style>{STYLES}</style>
 
-      <div ref={rootRef} className="rsvp-shell" style={{ background: 'white' }}>
+      <div ref={rootRef} className="rsvp-shell" style={{ background: 'var(--color-bg)' }}>
 
         {/* ── SECTION 1: Hero wrapper — 200dvh creates 100dvh scroll travel ─── */}
         <div ref={heroWrapperRef} style={{ height: '200dvh' }}>
@@ -660,7 +771,7 @@ export default function RSVPForm() {
           <section style={{
             position: 'sticky', top: 0,
             height: '100dvh', display: 'flex', flexDirection: 'column',
-            background: 'white',
+            background: 'var(--color-bg)',
             zIndex: 1,
           }}>
             {/* Header */}
@@ -724,7 +835,7 @@ export default function RSVPForm() {
         </div>
 
         {/* ── SECTION 2: English poem + Korean poem + 일시 ─────────────────── */}
-        <section style={{ position: 'relative', zIndex: 2, background: 'white' }}>
+        <section style={{ position: 'relative', zIndex: 2, background: 'var(--color-bg)' }}>
           {/* English poem */}
           <div style={{ padding: '48px 8px 18px', textAlign: 'center' }}>
             <WordRevealText
@@ -932,6 +1043,27 @@ export default function RSVPForm() {
               draggable={false}
               style={{ width: '100%', display: 'block', pointerEvents: 'none' }}
             />
+          </div>
+          <div style={{ padding: '20px 28px 36px', background: '#fafafa' }}>
+            <button
+              className="share-btn"
+              onClick={handleKakaoShare}
+              style={{
+                width: '100%',
+                padding: '15px 28px',
+                background: 'white',
+                border: '1px solid var(--color-border)',
+                cursor: 'pointer',
+                fontSize: '12px',
+                fontWeight: 500,
+                letterSpacing: '0.08em',
+                color: 'var(--color-text)',
+                textAlign: 'center',
+                display: 'block',
+              }}
+            >
+              카카오톡으로 공유하기
+            </button>
           </div>
         </section>
 
