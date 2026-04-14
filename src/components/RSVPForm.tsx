@@ -382,6 +382,23 @@ function RSVPModal({ onClose, onSuccess }: {
           }}>×</button>
         </div>
 
+        {/* Date reminder */}
+        <div style={{
+          padding: '16px 28px',
+          borderBottom: '1px solid var(--color-border)',
+          background: '#fafafa',
+          display: 'flex', flexDirection: 'column', gap: '4px',
+        }}>
+          {[
+            '2026년 5월 23일 토요일   11:00 - 16:00',
+            '혼인 서약 12:00 | 식사 11:30 - 14:30'
+          ].map(line => (
+            <span key={line} style={{ fontSize: '12px', fontWeight: 300, color: 'var(--color-text)', letterSpacing: '0.02em' }}>
+              {line}
+            </span>
+          ))}
+        </div>
+
         {/* Form body */}
         <div style={{ padding: '32px 28px', display: 'flex', flexDirection: 'column', gap: '28px' }}>
 
@@ -885,6 +902,59 @@ export default function RSVPForm() {
             />
           </div>
 
+        </section>
+
+        {/* ── SECTION 4: 참석 여부 ──────────────────────────────────────────── */}
+        <section>
+          <div style={{ padding: '32px 28px 28px', borderTop: '1px solid var(--color-border)' }}>
+            <SectionLabel animate={false}>참석 확인</SectionLabel>
+            <WordRevealText
+              lines={['한 분 한 분 소중히 모실 수 있도록', '참석 의사를 전해 주시면 감사하겠습니다.']}
+              revealStretch={1}
+              style={{ fontSize: '13px', fontWeight: 300, lineHeight: 1.8, color: 'var(--color-text)', marginBottom: '24px' }}
+            />
+            <button
+              className="rsvp-open-btn"
+              onClick={() => setModalOpen(true)}
+              style={{
+                width: '100%', padding: '16px 28px',
+                background: '#111111', border: 'none', cursor: 'pointer',
+                fontSize: '12px', fontWeight: 500, letterSpacing: '0.1em',
+                color: '#F5F5F5', textAlign: 'center', display: 'block',
+              }}
+            >
+              참석 의사 체크하기
+            </button>
+          </div>
+        </section>
+
+        {/* ── SECTION 5: 마음 전하실 곳 ────────────────────────────────────── */}
+        <section>
+          <div style={{ padding: '32px 28px 36px', borderTop: '1px solid var(--color-border)' }}>
+            <SectionLabel animate={false}>마음 전하실 곳</SectionLabel>
+            <WordRevealText
+              lines={['참석이 어려우신 분들을 위해 기재했습니다.', '너그러운 마음으로 양해 부탁드립니다.']}
+              revealStretch={1}
+              style={{ fontSize: '13px', fontWeight: 300, lineHeight: 1.8, color: 'var(--color-text)', marginBottom: '20px' }}
+            />
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                <p style={{ fontSize: '12px', fontWeight: 300, lineHeight: 1.7, color: 'var(--color-text)' }}>
+                  (유진선)<br />
+                  신한은행 110-354-126744
+                </p>
+                <CopyButton text="신한은행 110-354-126744" label="계좌 번호 복사" />
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                <p style={{ fontSize: '12px', fontWeight: 300, lineHeight: 1.7, color: 'var(--color-text)' }}>
+                  (공다슬)<br />
+                  국민은행 616302-04-034266
+                </p>
+                <CopyButton text="국민은행 616302-04-034266" label="계좌 번호 복사" />
+              </div>
+            </div>
+          </div>
+
           {/* lily.png */}
           <div>
             <img
@@ -894,62 +964,6 @@ export default function RSVPForm() {
               style={{ width: '100%', display: 'block', pointerEvents: 'none' }}
             />
           </div>
-        </section>
-
-        {/* ── SECTION 4: 마음 전하실 곳 + RSVP 버튼 ───────────────────────── */}
-        <section>
-          {/* 마음 전하실 곳 */}
-          <div style={{ padding: '32px 28px 36px', borderTop: '1px solid var(--color-border)' }}>
-            <SectionLabel animate={false}>마음 전하실 곳</SectionLabel>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px' }}>
-                <p style={{ fontSize: '13px', fontWeight: 300, color: 'var(--color-text)' }}>
-                  (유진선) 신한은행 110-354-126744
-                </p>
-                <CopyButton text="신한은행 110-354-126744" label="계좌 번호 복사" />
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px' }}>
-                <p style={{ fontSize: '13px', fontWeight: 300, color: 'var(--color-text)' }}>
-                  (공다슬) 국민은행 616302-04-034266
-                </p>
-                <CopyButton text="국민은행 616302-04-034266" label="계좌 번호 복사" />
-              </div>
-            </div>
-          </div>
-
-          {/* RSVP 버튼 */}
-          <button
-            className="rsvp-open-btn"
-            onClick={() => setModalOpen(true)}
-            style={{
-              width: '100%', padding: '28px 28px',
-              background: '#e0e0e0', border: 'none', cursor: 'pointer',
-              fontSize: '12px', fontWeight: 300, letterSpacing: '0.1em',
-              color: 'var(--color-text)', textAlign: 'center', display: 'block',
-            }}
-          >
-            참석 의사 체크하기
-          </button>
-
-          {/* <button
-            onClick={handleKakaoShare}
-            style={{
-              width: '100%',
-              padding: '22px 28px',
-              background: '#FEE500',
-              border: 'none',
-              cursor: 'pointer',
-              fontSize: '12px',
-              fontWeight: 400,
-              letterSpacing: '0.06em',
-              color: '#191919',
-              textAlign: 'center',
-              display: 'block',
-              borderTop: '1px solid rgba(0,0,0,0.06)',
-            }}
-          >
-            카카오톡으로 공유하기
-          </button> */}
         </section>
 
       </div>
