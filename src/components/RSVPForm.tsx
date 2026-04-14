@@ -721,22 +721,28 @@ export default function RSVPForm() {
               display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start',
               gap: '16px', flexShrink: 0,
             }}>
+              <div data-reveal-group className="vertical-text" style={{
+                fontSize: '16px', fontWeight: 600, lineHeight: 1.6,
+                color: '#8E9293', letterSpacing: '-0.15em',
+                whiteSpace: 'pre-line', flex: 0,
+              }}>
+                {([
+                  ['기쁜 날', '、'],
+                  ['가까이서 축복해주시면', ''],
+                  ['더없는 기쁨으로 간직하겠습니다', '。'],
+                ] as [string, string][]).map(([text, punct], i) => (
+                  <span key={i} data-reveal-line style={{ display: 'block' }}>
+                    {text}
+                    {punct && <span style={{ display: 'inline-block', transform: 'translateX(0.5em) translateY(-0.5em)' }}>{punct}</span>}
+                  </span>
+                ))}
+              </div>
               <LineRevealText
                 as="div"
                 className="vertical-text"
-                lines={['기쁜 날,', '가까이서 축복해주시면', '더없는 기쁨으로 간직하겠습니다.']}
+                lines={['유진선\u2002\u2002·\u2002\u2002공다슬']}
                 style={{
-                  fontSize: '14px', fontWeight: 300, lineHeight: 1.75,
-                  color: 'var(--color-text)', letterSpacing: '-0.1',
-                  whiteSpace: 'pre-line', flex: 0,
-                }}
-              />
-              <LineRevealText
-                as="div"
-                className="vertical-text"
-                lines={['유진선  ·  공다슬']}
-                style={{
-                  fontSize: '16px', fontWeight: 600, letterSpacing: '-0.1em',
+                  fontSize: '16px', fontWeight: 900, letterSpacing: '-0.15em',
                   color: 'var(--color-text)', whiteSpace: 'nowrap',
                 }}
               />
