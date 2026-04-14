@@ -439,7 +439,7 @@ function RSVPModal({ onClose, onSuccess }: {
             transition: 'max-height 220ms ease-out, opacity 220ms ease-out',
           }}>
             <p style={{ fontSize: '13px', fontWeight: 300, marginBottom: '8px', color: 'var(--color-text)' }}>
-              동행하시는 분이 있다면 인원 수를 추가해 주세요.
+              참석하시는 인원 수를 알려주세요.
             </p>
             <div style={{ border: '1px solid var(--color-border)', display: 'flex', alignItems: 'center' }}>
               <input
@@ -456,9 +456,9 @@ function RSVPModal({ onClose, onSuccess }: {
               />
               <span style={{ paddingRight: '16px', fontSize: '13px', fontWeight: 300, userSelect: 'none', color: 'var(--color-text-muted)' }}>명</span>
             </div>
-            <p style={{ marginTop: '8px', fontSize: '11px', color: 'var(--color-text-muted)' }}>
+            {/* <p style={{ marginTop: '8px', fontSize: '11px', color: 'var(--color-text-muted)' }}>
               본인 포함 총 인원 수입니다.
-            </p>
+            </p> */}
           </div>
 
           {/* Error */}
@@ -850,7 +850,7 @@ export default function RSVPForm() {
           <div style={{ padding: '32px 28px 36px', borderTop: '1px solid var(--color-border)' }}>
             <SectionLabel>장소</SectionLabel>
             <WordRevealText
-              lines={['서울시 서대문구 연희동 95-10']}
+              lines={['서울시 서대문구 연희동 95-10 ']}
               revealStretch={1}
               style={{ fontSize: '13px', fontWeight: 300, lineHeight: 1.9, color: 'var(--color-text)', marginBottom: '10px' }}
             />
@@ -861,6 +861,14 @@ export default function RSVPForm() {
                 style={{ fontSize: '12px', fontWeight: 300, lineHeight: 1.7, color: 'var(--color-text-muted)', flex: 1 }}
               />
               <CopyButton text="서울시 서대문구 연희로27다길 10-15" label="주소 복사" />
+            </div>
+            <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '12px' }}>
+              <WordRevealText
+                lines={['(문의) WWL 스튜디오 010-7359-4240']}
+                revealStretch={1}
+                style={{ fontSize: '12px', fontWeight: 300, lineHeight: 1.7, color: 'var(--color-text-muted)', flex: 1 }}
+              />
+              {/* <CopyButton text="010-7359-4240" label="전화번호 복사" /> */}
             </div>
           </div>
 
@@ -893,11 +901,19 @@ export default function RSVPForm() {
           {/* 마음 전하실 곳 */}
           <div style={{ padding: '32px 28px 36px', borderTop: '1px solid var(--color-border)' }}>
             <SectionLabel animate={false}>마음 전하실 곳</SectionLabel>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px' }}>
-              <p style={{ fontSize: '13px', fontWeight: 300, color: 'var(--color-text)' }}>
-                ○○은행 000-0000000-0000000
-              </p>
-              <CopyButton text="000-0000000-0000000" label="계좌 번호 복사" />
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px' }}>
+                <p style={{ fontSize: '13px', fontWeight: 300, color: 'var(--color-text)' }}>
+                  (유진선) 신한은행 110-354-126744
+                </p>
+                <CopyButton text="신한은행 110-354-126744" label="계좌 번호 복사" />
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px' }}>
+                <p style={{ fontSize: '13px', fontWeight: 300, color: 'var(--color-text)' }}>
+                  (공다슬) 국민은행 616302-04-034266
+                </p>
+                <CopyButton text="국민은행 616302-04-034266" label="계좌 번호 복사" />
+              </div>
             </div>
           </div>
 
@@ -915,7 +931,7 @@ export default function RSVPForm() {
             참석 의사 체크하기
           </button>
 
-          <button
+          {/* <button
             onClick={handleKakaoShare}
             style={{
               width: '100%',
@@ -933,7 +949,7 @@ export default function RSVPForm() {
             }}
           >
             카카오톡으로 공유하기
-          </button>
+          </button> */}
         </section>
 
       </div>
