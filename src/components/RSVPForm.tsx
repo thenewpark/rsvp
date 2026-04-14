@@ -351,10 +351,27 @@ function RSVPModal({ onClose, onSuccess }: {
   const [extraVisible, setExtraVisible] = useState(false)
 
   useEffect(() => { setExtraVisible(!!selected) }, [selected])
-  // Prevent body scroll while modal is open
+  // Lock the page behind the modal, including mobile Safari.
   useEffect(() => {
-    document.body.style.overflow = 'hidden'
-    return () => { document.body.style.overflow = '' }
+    const scrollY = window.scrollY
+    const { style } = document.body
+    const previousOverflow = style.overflow
+    const previousPosition = style.position
+    const previousTop = style.top
+    const previousWidth = style.width
+
+    style.overflow = 'hidden'
+    style.position = 'fixed'
+    style.top = `-${scrollY}px`
+    style.width = '100%'
+
+    return () => {
+      style.overflow = previousOverflow
+      style.position = previousPosition
+      style.top = previousTop
+      style.width = previousWidth
+      window.scrollTo(0, scrollY)
+    }
   }, [])
 
   const canSubmit = !!selected && name.trim().length > 0 && !isLoading
