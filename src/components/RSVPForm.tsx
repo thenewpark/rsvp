@@ -786,20 +786,20 @@ export default function RSVPForm() {
             <WordRevealText
               lines={['2026년 5월 23일 토요일', '11:00 — 16:00']}
               revealStretch={1}
-              style={{ fontSize: '13px', fontWeight: 300, lineHeight: 1.9, color: 'var(--color-text)', marginBottom: '20px' }}
+              style={{ fontSize: '14px', fontWeight: 300, lineHeight: 1.9, color: 'var(--color-text)', marginBottom: '20px' }}
             />
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr' }}>
               <WordRevealText
                 as="div"
-                lines={['혼인 서약:', '12:00']}
+                lines={['혼인 서약', '12:00']}
                 revealStretch={1}
-                style={{ fontSize: '12px', fontWeight: 300, lineHeight: 2, color: 'var(--color-text)' }}
+                style={{ fontSize: '14px', fontWeight: 300, lineHeight: 2, color: 'var(--color-text)' }}
               />
               <WordRevealText
                 as="div"
-                lines={['식사:', '11:30 – 14:30']}
+                lines={['식사', '11:30 – 14:30']}
                 revealStretch={1}
-                style={{ fontSize: '12px', fontWeight: 300, lineHeight: 2, color: 'var(--color-text)' }}
+                style={{ fontSize: '14px', fontWeight: 300, lineHeight: 2, color: 'var(--color-text)' }}
               />
             </div>
           </div>
@@ -815,7 +815,7 @@ export default function RSVPForm() {
               <WordRevealText
                 lines={['서울시 서대문구 연희동 95-10']}
                 revealStretch={1}
-                style={{ fontSize: '13px', fontWeight: 300, lineHeight: 1.9, color: 'var(--color-text)', marginBottom: '8px' }}
+                style={{ fontSize: '14px', fontWeight: 300, lineHeight: 1.9, color: 'var(--color-text)', marginBottom: '8px' }}
               />
               <CopyButton text="서울시 서대문구 연희로27다길 10-15" label="주소 복사" />
             </div>
@@ -823,14 +823,14 @@ export default function RSVPForm() {
             <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '12px' }}>
               <WordRevealText
                 lines={['(도로명) 서울시 서대문구 연희로27다길 10-15']}
-                revealStretch={1}
+                revealStretch={0.5}
                 style={{ fontSize: '12px', fontWeight: 300, lineHeight: 1.7, color: 'var(--color-text-muted)', flex: 1 }}
               />
             </div>
             <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '12px' }}>
               <WordRevealText
                 lines={['Tel. 010-7359-4240 (WWL 스튜디오)']}
-                revealStretch={1}
+                revealStretch={0.5}
                 style={{ fontSize: '12px', fontWeight: 300, lineHeight: 1.7, color: 'var(--color-text-muted)', flex: 1 }}
               />
             </div>
@@ -841,9 +841,9 @@ export default function RSVPForm() {
             <SectionLabel>주차 안내</SectionLabel>
             <WordRevealText
               lines={['단독주택으로 주차 공간이 마련되어 있지 않습니다.', '인근 공영주차장을 이용해 주시면 감사하겠습니다.']}
-              revealStretch={0.7}
+              revealStretch={0.5}
               style={{
-                fontSize: '12px', fontWeight: 300, lineHeight: 1.9,
+                fontSize: '14px', fontWeight: 300, lineHeight: 1.65,
                 color: 'var(--color-text)', wordBreak: 'keep-all',
               }}
             />
@@ -858,7 +858,7 @@ export default function RSVPForm() {
             <WordRevealText
               lines={['한 분 한 분 소중히 모실 수 있도록', '참석 의사를 전해 주시면 감사하겠습니다.']}
               revealStretch={0.5}
-              style={{ fontSize: '13px', fontWeight: 300, lineHeight: 1.8, color: 'var(--color-text)', marginBottom: '24px' }}
+              style={{ fontSize: '14px', fontWeight: 300, lineHeight: 1.65, color: 'var(--color-text)', marginBottom: '24px' }}
             />
             <button
               className="rsvp-open-btn"
@@ -882,18 +882,18 @@ export default function RSVPForm() {
             <WordRevealText
               lines={['참석이 어려우신 분들을 위해 기재했습니다.', '너그러운 마음으로 양해 부탁드립니다.']}
               revealStretch={0.5}
-              style={{ fontSize: '13px', fontWeight: 300, lineHeight: 1.8, color: 'var(--color-text)', marginBottom: '20px' }}
+              style={{ fontSize: '14px', fontWeight: 300, lineHeight: 1.65, color: 'var(--color-text)', marginBottom: '20px' }}
             />
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                <p style={{ fontSize: '12px', fontWeight: 300, lineHeight: 1.7, color: 'var(--color-text)' }}>
+                <p style={{ fontSize: '12px', fontWeight: 300, lineHeight: 1.75, color: 'var(--color-text)' }}>
                   (유진선)<br />
                   신한은행 110-354-126744
                 </p>
                 <CopyButton text="신한은행 110-354-126744" label="계좌 번호 복사" />
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                <p style={{ fontSize: '12px', fontWeight: 300, lineHeight: 1.7, color: 'var(--color-text)' }}>
+                <p style={{ fontSize: '12px', fontWeight: 300, lineHeight: 1.75, color: 'var(--color-text)' }}>
                   (공다슬)<br />
                   국민은행 616302-04-034266
                 </p>
