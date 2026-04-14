@@ -49,8 +49,15 @@ const STYLES = `
     cursor: pointer;
     white-space: nowrap;
     flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
     transition: background-color 150ms ease, color 150ms ease, border-color 150ms ease;
     line-height: 1.6;
+  }
+  .copy-btn--compact {
+    width: 64px;
   }
   .copy-btn.copied {
     background: var(--color-fill);
@@ -208,7 +215,7 @@ function WordRevealText({
 }
 
 // ── Copy button ────────────────────────────────────────────────────────────────
-function CopyButton({ text, label }: { text: string; label: string }) {
+function CopyButton({ text, label, compact = false }: { text: string; label: string; compact?: boolean }) {
   const [copied, setCopied] = useState(false)
   const copy = async () => {
     try {
@@ -218,9 +225,21 @@ function CopyButton({ text, label }: { text: string; label: string }) {
     } catch { /* silent fail */ }
   }
   return (
-    <button className={`copy-btn${copied ? ' copied' : ''}`} onClick={copy}>
+    <button className={`copy-btn${compact ? ' copy-btn--compact' : ''}${copied ? ' copied' : ''}`} onClick={copy}>
       {copied ? '복사됨' : label}
     </button>
+  )
+}
+
+function CallButton({ phone, label }: { phone: string; label: string }) {
+  return (
+    <a
+      className="copy-btn copy-btn--compact"
+      href={`tel:${phone.replace(/[^+\d]/g, '')}`}
+      style={{ textDecoration: 'none' }}
+    >
+      {label}
+    </a>
   )
 }
 
@@ -336,7 +355,7 @@ function RSVPModal({ onClose, onSuccess }: {
           borderBottom: '1px solid var(--color-border)',
           position: 'sticky', top: 0, background: 'white', zIndex: 1,
         }}>
-          <span style={{ fontSize: '13px', fontWeight: 300, letterSpacing: '0.04em', color: 'var(--color-text)' }}>
+          <span style={{ fontSize: '14px', fontWeight: 300, letterSpacing: '0.04em', color: 'var(--color-text)' }}>
             참석 확인
           </span>
           <button onClick={onClose} style={{
@@ -368,7 +387,7 @@ function RSVPModal({ onClose, onSuccess }: {
 
           {/* Name */}
           <div>
-            <p style={{ fontSize: '13px', fontWeight: 300, marginBottom: '8px', color: 'var(--color-text)' }}>성함 *</p>
+            <p style={{ fontSize: '14px', fontWeight: 300, marginBottom: '8px', color: 'var(--color-text)' }}>성함 *</p>
             <input
               type="text" value={name}
               onChange={e => setName(e.target.value)}
@@ -384,7 +403,7 @@ function RSVPModal({ onClose, onSuccess }: {
 
           {/* Time slot */}
           <div>
-            <p style={{ fontSize: '13px', fontWeight: 300, marginBottom: '12px', color: 'var(--color-text)' }}>
+            <p style={{ fontSize: '14px', fontWeight: 300, marginBottom: '12px', color: 'var(--color-text)' }}>
               편하신 식사 시간을 알려주세요.*
             </p>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
@@ -394,7 +413,7 @@ function RSVPModal({ onClose, onSuccess }: {
                   <button key={slot} onClick={() => handleSelect(slot)}
                     className={['slot-btn', on ? 'slot-btn--on' : ''].join(' ')}
                     style={{
-                      border: '1px solid', padding: '16px 12px', fontSize: '13px',
+                      border: '1px solid', padding: '16px 12px', fontSize: '14px',
                       fontWeight: 300, textAlign: 'left', cursor: 'pointer',
                       ...(on
                         ? { backgroundColor: 'var(--color-fill)', color: '#fff', borderColor: 'var(--color-fill)' }
@@ -402,7 +421,7 @@ function RSVPModal({ onClose, onSuccess }: {
                       ),
                     }}
                   >
-                    <span style={{ display: 'block', fontSize: '11px', marginBottom: '4px', opacity: 0.45 }}>
+                    <span style={{ display: 'block', fontSize: '12px', marginBottom: '4px', opacity: 0.45 }}>
                       {on ? '—' : '○'}
                     </span>
                     {slot}
@@ -419,7 +438,7 @@ function RSVPModal({ onClose, onSuccess }: {
             opacity: extraVisible ? 1 : 0,
             transition: 'max-height 220ms ease-out, opacity 220ms ease-out',
           }}>
-            <p style={{ fontSize: '13px', fontWeight: 300, marginBottom: '8px', color: 'var(--color-text)' }}>
+            <p style={{ fontSize: '14px', fontWeight: 300, marginBottom: '8px', color: 'var(--color-text)' }}>
               참석하시는 인원 수를 알려주세요.
             </p>
             <div style={{ border: '1px solid var(--color-border)', display: 'flex', alignItems: 'center' }}>
@@ -453,7 +472,7 @@ function RSVPModal({ onClose, onSuccess }: {
             disabled={!canSubmit}
             className="submit-btn"
             style={{
-              width: '100%', padding: '16px', fontSize: '13px', fontWeight: 300,
+              width: '100%', padding: '16px', fontSize: '14px', fontWeight: 300,
               letterSpacing: '0.06em', border: '1px solid',
               cursor: canSubmit ? 'pointer' : 'not-allowed',
               ...(canSubmit
@@ -695,7 +714,9 @@ export default function RSVPForm() {
                   display: 'block',
                   pointerEvents: 'none',
                   opacity: isHeroVideoReady ? 1 : 0,
-                  transition: 'opacity 120ms linear',
+                  transform: isHeroVideoReady ? 'translateY(0)' : 'translateY(16px)',
+                  filter: isHeroVideoReady ? 'blur(0px)' : 'blur(12px)',
+                  transition: 'opacity 600ms ease-out, transform 780ms ease-out, filter 780ms ease-out',
                 }}
               />
             </div>
@@ -784,7 +805,7 @@ export default function RSVPForm() {
           <div style={{ padding: '32px 28px 36px', borderTop: '1px solid var(--color-border)' }}>
             <SectionLabel>일시</SectionLabel>
             <WordRevealText
-              lines={['2026년 5월 23일 토요일', '11:00 — 16:00']}
+              lines={['2026년 5월 23일 토요일', '11:00 – 16:00']}
               revealStretch={1}
               style={{ fontSize: '14px', fontWeight: 300, lineHeight: 1.9, color: 'var(--color-text)', marginBottom: '20px' }}
             />
@@ -815,24 +836,25 @@ export default function RSVPForm() {
               <WordRevealText
                 lines={['서울시 서대문구 연희동 95-10']}
                 revealStretch={1}
-                style={{ fontSize: '14px', fontWeight: 300, lineHeight: 1.9, color: 'var(--color-text)', marginBottom: '8px' }}
+                style={{ fontSize: '14px', fontWeight: 300, lineHeight: 1.9, color: 'var(--color-text)', marginBottom: '4px' }}
               />
-              <CopyButton text="서울시 서대문구 연희로27다길 10-15" label="주소 복사" />
+              <CopyButton text="서울시 서대문구 연희동 95-10" label="주소 복사" compact />
             </div>
 
-            <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '12px' }}>
+            <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '12px', marginTop: '-2px' }}>
               <WordRevealText
                 lines={['(도로명) 서울시 서대문구 연희로27다길 10-15']}
                 revealStretch={0.5}
                 style={{ fontSize: '12px', fontWeight: 300, lineHeight: 1.7, color: 'var(--color-text-muted)', flex: 1 }}
               />
             </div>
-            <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '12px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px' }}>
               <WordRevealText
                 lines={['Tel. 010-7359-4240 (WWL 스튜디오)']}
                 revealStretch={0.5}
-                style={{ fontSize: '12px', fontWeight: 300, lineHeight: 1.7, color: 'var(--color-text-muted)', flex: 1 }}
+                style={{ fontSize: '12px', fontWeight: 300, lineHeight: 1.7, color: 'var(--color-text-muted)', flex: 1, marginBottom: 0 }}
               />
+              <CallButton phone="010-7359-4240" label="전화하기" />
             </div>
           </div>
 
