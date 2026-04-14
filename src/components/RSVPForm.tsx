@@ -678,7 +678,11 @@ export default function RSVPForm() {
             </div>
 
             {/* Video — natural aspect ratio (0.97:1), no cropping */}
-            <div style={{ flex: 1 }}>
+            <div style={{
+              flex: 1,
+              display: 'flex',
+              alignItems: 'flex-end',
+            }}>
               <video
                 ref={videoRef}
                 src="/bloom_scrub.mp4"
@@ -699,7 +703,7 @@ export default function RSVPForm() {
         </div>
 
         {/* ── SECTION 2: English poem + Korean poem + 일시 ─────────────────── */}
-        <section>
+        <section style={{ position: 'relative', zIndex: 2, background: 'white' }}>
           {/* English poem */}
           <div style={{ padding: '48px 8px 18px', textAlign: 'center' }}>
             <WordRevealText
