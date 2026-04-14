@@ -65,6 +65,24 @@ body {
   font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
 }
 
+.app-shell {
+  width: 100%;
+}
+
+.rsvp-shell {
+  margin: 0;
+}
+
+@media (min-width: 768px) {
+  .app-shell {
+    max-width: 430px;
+  }
+
+  .rsvp-shell {
+    margin: 0 10px;
+  }
+}
+
 /* Prevent Safari auto-zoom on input focus (triggered when font-size < 16px).
    !important needed to override Tailwind utility class specificity. */
 input,

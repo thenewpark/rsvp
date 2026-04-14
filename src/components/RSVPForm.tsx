@@ -8,42 +8,6 @@ gsap.registerPlugin(ScrollTrigger, useGSAP)
 type TimeSlot = '11시 30분' | '12시 30분'
 type ToastVariant = 'success' | 'error'
 
-type KakaoShareConfig = {
-  objectType: 'feed'
-  content: {
-    title: string
-    description: string
-    imageUrl: string
-    link: {
-      mobileWebUrl: string
-      webUrl: string
-    }
-  }
-  buttons: Array<{
-    title: string
-    link: {
-      mobileWebUrl: string
-      webUrl: string
-    }
-  }>
-}
-
-type KakaoSDK = {
-  init: (appKey: string) => void
-  isInitialized: () => boolean
-  Share: {
-    sendDefault: (config: KakaoShareConfig) => void
-  }
-}
-
-declare global {
-  interface Window {
-    Kakao?: KakaoSDK
-  }
-}
-
-const KAKAO_SDK_SRC = 'https://t1.kakaocdn.net/kakao_js_sdk/2.7.5/kakao.min.js'
-
 const STYLES = `
   .slot-btn {
     transition: background-color 180ms ease, color 180ms ease,
@@ -511,12 +475,11 @@ function RSVPModal({ onClose, onSuccess }: {
 export default function RSVPForm() {
   const [modalOpen, setModalOpen] = useState(false)
   const [toast, setToast] = useState<{ message: string; variant: ToastVariant } | null>(null)
-  const [isKakaoReady, setIsKakaoReady] = useState(false)
+  const [isHeroVideoReady, setIsHeroVideoReady] = useState(false)
 
   const rootRef = useRef<HTMLDivElement>(null)
   const videoRef = useRef<HTMLVideoElement>(null)
   const heroWrapperRef = useRef<HTMLDivElement>(null)
-  const kakaoKey = import.meta.env.VITE_KAKAO_JAVASCRIPT_KEY
 
   // Use CSS sticky (not GSAP pin) for reliability.
   // The 200dvh wrapper gives 100dvh of scroll travel while the sticky hero
@@ -526,6 +489,8 @@ export default function RSVPForm() {
     const heroWrapper = heroWrapperRef.current
     const root = rootRef.current
     if (!video || !heroWrapper || !root) return
+
+    setIsHeroVideoReady(false)
 
     const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
@@ -602,9 +567,33 @@ export default function RSVPForm() {
 
     if (prefersReducedMotion) return
 
-    const setupTrigger = () => {
-      video.currentTime = video.duration  // start at end (5s)
+    const syncVideoToStartFrame = (onReady?: () => void) => {
+      const reveal = () => requestAnimationFrame(() => setIsHeroVideoReady(true))
 
+      if (!video.duration || !Number.isFinite(video.duration)) {
+        reveal()
+        onReady?.()
+        return
+      }
+
+      const handleSeeked = () => {
+        reveal()
+        onReady?.()
+      }
+
+      video.addEventListener('seeked', handleSeeked, { once: true })
+      video.currentTime = video.duration
+
+      // Some browsers may already be at the target time and skip `seeked`.
+      requestAnimationFrame(() => {
+        if (Math.abs(video.currentTime - video.duration) < 0.05) {
+          video.removeEventListener('seeked', handleSeeked)
+          handleSeeked()
+        }
+      })
+    }
+
+    const setupTrigger = () => {
       ScrollTrigger.create({
         trigger: heroWrapper,
         start: 'top top',
@@ -628,11 +617,11 @@ export default function RSVPForm() {
       const playPromise = video.play()
       if (playPromise) {
         playPromise
-          .then(() => { video.pause(); setupTrigger() })
-          .catch(() => { setupTrigger() })  // play blocked (e.g. policy) – try anyway
+          .then(() => { video.pause(); syncVideoToStartFrame(setupTrigger) })
+          .catch(() => { syncVideoToStartFrame(setupTrigger) })  // play blocked (e.g. policy) – try anyway
       } else {
         video.pause()
-        setupTrigger()
+        syncVideoToStartFrame(setupTrigger)
       }
     }
 
@@ -640,76 +629,11 @@ export default function RSVPForm() {
     else video.addEventListener('loadedmetadata', create, { once: true })
   }, { scope: rootRef })
 
-  useEffect(() => {
-    if (!kakaoKey) return
-
-    const initializeKakao = () => {
-      if (!window.Kakao) return
-      if (!window.Kakao.isInitialized()) window.Kakao.init(kakaoKey)
-      setIsKakaoReady(true)
-    }
-
-    if (window.Kakao) {
-      initializeKakao()
-      return
-    }
-
-    const existingScript = document.querySelector<HTMLScriptElement>('script[data-kakao-sdk="true"]')
-    if (existingScript) {
-      existingScript.addEventListener('load', initializeKakao, { once: true })
-      return
-    }
-
-    const script = document.createElement('script')
-    script.src = KAKAO_SDK_SRC
-    script.async = true
-    script.dataset.kakaoSdk = 'true'
-    script.addEventListener('load', initializeKakao, { once: true })
-    document.head.appendChild(script)
-  }, [kakaoKey])
-
-  const handleKakaoShare = () => {
-    if (!kakaoKey) {
-      setToast({ message: '카카오 공유를 사용하려면 VITE_KAKAO_JAVASCRIPT_KEY 설정이 필요합니다.', variant: 'error' })
-      return
-    }
-
-    if (!window.Kakao || !isKakaoReady) {
-      setToast({ message: '카카오 공유 준비 중입니다. 잠시 후 다시 시도해주세요.', variant: 'error' })
-      return
-    }
-
-    const shareUrl = window.location.href
-    const imageUrl = new URL('/kara.jpeg', window.location.origin).toString()
-
-    window.Kakao.Share.sendDefault({
-      objectType: 'feed',
-      content: {
-        title: '귀하신 분께, 진선과 다슬의 결혼식에 초대드립니다',
-        description: '',
-        imageUrl,
-        link: {
-          mobileWebUrl: shareUrl,
-          webUrl: shareUrl,
-        },
-      },
-      buttons: [
-        {
-          title: '모바일 청첩장 보기',
-          link: {
-            mobileWebUrl: shareUrl,
-            webUrl: shareUrl,
-          },
-        },
-      ],
-    })
-  }
-
   return (
     <>
       <style>{STYLES}</style>
 
-      <div ref={rootRef} style={{ background: 'white', margin: '0 10px' }}>
+      <div ref={rootRef} className="rsvp-shell" style={{ background: 'white' }}>
 
         {/* ── SECTION 1: Hero wrapper — 200dvh creates 100dvh scroll travel ─── */}
         <div ref={heroWrapperRef} style={{ height: '200dvh' }}>
@@ -761,7 +685,14 @@ export default function RSVPForm() {
                 muted
                 playsInline
                 preload="auto"
-                style={{ width: '100%', height: 'auto', display: 'block', pointerEvents: 'none' }}
+                style={{
+                  width: '100%',
+                  height: 'auto',
+                  display: 'block',
+                  pointerEvents: 'none',
+                  opacity: isHeroVideoReady ? 1 : 0,
+                  transition: 'opacity 120ms linear',
+                }}
               />
             </div>
           </section>
@@ -770,7 +701,7 @@ export default function RSVPForm() {
         {/* ── SECTION 2: English poem + Korean poem + 일시 ─────────────────── */}
         <section>
           {/* English poem */}
-          <div style={{ padding: '24px 8px 18px', textAlign: 'center' }}>
+          <div style={{ padding: '48px 8px 18px', textAlign: 'center' }}>
             <WordRevealText
               lines={[
                 "LOVE'S",
