@@ -135,12 +135,12 @@ const STYLES = `
 
 // ── Korean poem columns ────────────────────────────────────────────────────────
 const koreanPoemColumns = [
-  '사랑은 시간이 광대가 아닙니다.',
+  '사랑은 시간의 광대가 아닙니다.',
   '비록 장밋빛 입술과 뺨이',
   '시간의 낫 아래 들지라도',
   '사랑은 세월의 흐름에 휩쓸리지 않습니다.',
   '그러나 운명의 가장자리까지',
-  '그것을 견뎌냅니다.',
+  '그것을 견뎌냅시다.',
 ]
 
 // ── Section label ──────────────────────────────────────────────────────────────
@@ -404,7 +404,7 @@ function RSVPModal({ onClose, onSuccess }: {
 
           {/* Name */}
           <div>
-            <p style={{ fontSize: '13px', fontWeight: 300, marginBottom: '8px', color: 'var(--color-text)' }}>성함</p>
+            <p style={{ fontSize: '13px', fontWeight: 300, marginBottom: '8px', color: 'var(--color-text)' }}>성함 *</p>
             <input
               type="text" value={name}
               onChange={e => setName(e.target.value)}
@@ -421,7 +421,7 @@ function RSVPModal({ onClose, onSuccess }: {
           {/* Time slot */}
           <div>
             <p style={{ fontSize: '13px', fontWeight: 300, marginBottom: '12px', color: 'var(--color-text)' }}>
-              편하신 식사 시간을 알려주세요.
+              편하신 식사 시간을 알려주세요.*
             </p>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
               {(['11시 30분', '12시 30분'] as TimeSlot[]).map(slot => {
@@ -546,18 +546,22 @@ export default function RSVPForm() {
         willChange: 'transform, filter, opacity',
       })
 
+      const stagger = Number(group.dataset.revealStagger) || 0.12
+      const start = group.dataset.revealStart || 'top 84%'
+
       gsap.to(lines, {
         autoAlpha: 1,
         filter: 'blur(0px)',
         y: 0,
         duration: 0.9,
         ease: 'power2.out',
-        stagger: 0.12,
+        stagger,
         clearProps: 'willChange',
         scrollTrigger: {
           trigger: group,
-          start: 'top 84%',
+          start,
           once: true,
+          invalidateOnRefresh: true,
         },
       })
     })
@@ -714,6 +718,7 @@ export default function RSVPForm() {
             position: 'sticky', top: 0,
             height: '100dvh', display: 'flex', flexDirection: 'column',
             background: 'white',
+            zIndex: 1,
           }}>
             {/* Header */}
             <div style={{
@@ -765,7 +770,7 @@ export default function RSVPForm() {
         {/* ── SECTION 2: English poem + Korean poem + 일시 ─────────────────── */}
         <section>
           {/* English poem */}
-          <div style={{ padding: '24px 18px 18px', textAlign: 'center' }}>
+          <div style={{ padding: '24px 8px 18px', textAlign: 'center' }}>
             <WordRevealText
               lines={[
                 "LOVE'S",
@@ -775,14 +780,14 @@ export default function RSVPForm() {
                 'LOVE ALTERS NOT WITH HIS BRIEF HOURS AND WEEKS,',
                 'BUT BEARS IT OUT EVEN TO THE EDGE OF DOOM.',
               ]}
-              revealStretch={1.45}
+              revealStretch={0.7}
               style={{
                 margin: 0,
-                fontFamily: '"Cormorant Garamond", Georgia, "Times New Roman", serif',
-                fontSize: '10px',
+                fontFamily: '"Marcellus", Georgia, "Times New Roman", serif',
+                fontSize: 'clamp(8px, 3.4vw, 15px)',
                 fontWeight: 300,
-                letterSpacing: '0.05em',
-                lineHeight: 1.12,
+                letterSpacing: '0.012em',
+                lineHeight: 1.15,
                 color: '#8a8a8a',
                 textTransform: 'uppercase',
               }}
@@ -790,54 +795,52 @@ export default function RSVPForm() {
           </div>
 
           {/* Korean poem */}
-          <div style={{ padding: '2px 18px 54px' }}>
-            <div data-reveal-group style={{
-              display: 'flex', flexDirection: 'row',
-              alignItems: 'flex-start', justifyContent: 'center',
-              gap: '12px',
-            }}>
-              {koreanPoemColumns.map((col, i) => (
-                <div key={i} data-reveal-line className="vertical-text" style={{
-                  fontSize: '10px',
-                  fontWeight: 300,
-                  lineHeight: 1.05,
-                  color: '#6f6f6f',
-                  whiteSpace: 'nowrap',
-                  letterSpacing: '0.02em',
-                }}>
-                  {col}
-                </div>
-              ))}
-              <div data-reveal-line style={{
-                paddingTop: '2px',
-                marginLeft: '4px',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '2px',
-                alignItems: 'flex-start',
-                color: '#7c7c7c',
-                flexShrink: 0,
-              }}>
-                <span style={{
-                  fontFamily: '"Cormorant Garamond", Georgia, "Times New Roman", serif',
-                  fontSize: '9px',
-                  fontWeight: 400,
-                  letterSpacing: '0.04em',
-                  lineHeight: 1.15,
-                  whiteSpace: 'nowrap',
-                }}>
-                  SONNET 116,
-                </span>
-                <span style={{
-                  fontFamily: '"Cormorant Garamond", Georgia, "Times New Roman", serif',
-                  fontSize: '9px',
-                  fontWeight: 400,
-                  letterSpacing: '0.04em',
-                  lineHeight: 1.15,
-                  whiteSpace: 'nowrap',
-                }}>
-                  WILLIAM SHAKESPEARE
-                </span>
+          <div style={{ padding: '2px 18px 54px', textAlign: 'center' }}>
+            {/* inline-block wrapper: sized to columns, attribution pinned outside right edge */}
+            <div style={{ display: 'inline-block', position: 'relative', textAlign: 'left' }}>
+              <div
+                data-reveal-group
+                data-reveal-stagger="0.3"
+                data-reveal-start="top 72%"
+                style={{
+                  display: 'flex', flexDirection: 'row-reverse',
+                  alignItems: 'flex-start',
+                  gap: '12px',
+                }}
+              >
+                {koreanPoemColumns.map((col, i) => (
+                  <div key={i} data-reveal-line className="vertical-text" style={{
+                    fontSize: '14px',
+                    fontWeight: 600,
+                    lineHeight: 1.05,
+                    color: '#8E9293',
+                    whiteSpace: 'nowrap',
+                    letterSpacing: '-0.15em',
+                  }}>
+                    {col}
+                  </div>
+                ))}
+              </div>
+              {/* Attribution — always right of columns, never overlaps */}
+              <div
+                data-reveal-group
+                data-reveal-start="top 72%"
+                style={{
+                  position: 'absolute', top: '0', left: '100%',
+                  paddingLeft: '8px',
+                  display: 'flex', flexDirection: 'column', gap: '2px',
+                  alignItems: 'flex-start', color: '#7c7c7c',
+                }}
+              >
+                {['SONNET 116,', 'WILLIAM SHAKESPEARE'].map(line => (
+                  <span key={line} data-reveal-line style={{
+                    fontFamily: '"Cormorant Garamond", Georgia, "Times New Roman", serif',
+                    fontSize: 'clamp(6px, 2.4vw, 8px)', fontWeight: 400,
+                    letterSpacing: '0.04em', lineHeight: 1.15, whiteSpace: 'nowrap',
+                  }}>
+                    {line}
+                  </span>
+                ))}
               </div>
             </div>
           </div>
@@ -872,26 +875,29 @@ export default function RSVPForm() {
           {/* 장소 */}
           <div style={{ padding: '32px 28px 36px', borderTop: '1px solid var(--color-border)' }}>
             <SectionLabel>장소</SectionLabel>
-            <WordRevealText
-              lines={['서울시 서대문구 연희동 95-10 ']}
-              revealStretch={1}
-              style={{ fontSize: '13px', fontWeight: 300, lineHeight: 1.9, color: 'var(--color-text)', marginBottom: '10px' }}
-            />
+            <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '12px' }}>
+
+              <WordRevealText
+                lines={['서울시 서대문구 연희동 95-10']}
+                revealStretch={1}
+                style={{ fontSize: '13px', fontWeight: 300, lineHeight: 1.9, color: 'var(--color-text)', marginBottom: '8px' }}
+              />
+              <CopyButton text="서울시 서대문구 연희로27다길 10-15" label="주소 복사" />
+            </div>
+
             <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '12px' }}>
               <WordRevealText
                 lines={['(도로명) 서울시 서대문구 연희로27다길 10-15']}
                 revealStretch={1}
                 style={{ fontSize: '12px', fontWeight: 300, lineHeight: 1.7, color: 'var(--color-text-muted)', flex: 1 }}
               />
-              <CopyButton text="서울시 서대문구 연희로27다길 10-15" label="주소 복사" />
             </div>
             <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '12px' }}>
               <WordRevealText
-                lines={['(문의) WWL 스튜디오 010-7359-4240']}
+                lines={['Tel. 010-7359-4240 (WWL 스튜디오)']}
                 revealStretch={1}
                 style={{ fontSize: '12px', fontWeight: 300, lineHeight: 1.7, color: 'var(--color-text-muted)', flex: 1 }}
               />
-              {/* <CopyButton text="010-7359-4240" label="전화번호 복사" /> */}
             </div>
           </div>
 
@@ -900,7 +906,7 @@ export default function RSVPForm() {
             <SectionLabel>주차 안내</SectionLabel>
             <WordRevealText
               lines={['단독주택으로 주차 공간이 마련되어 있지 않습니다.', '인근 공영주차장을 이용해 주시면 감사하겠습니다.']}
-              revealStretch={1}
+              revealStretch={0.7}
               style={{
                 fontSize: '12px', fontWeight: 300, lineHeight: 1.9,
                 color: 'var(--color-text)', wordBreak: 'keep-all',
@@ -916,7 +922,7 @@ export default function RSVPForm() {
             <SectionLabel animate={false}>참석 확인</SectionLabel>
             <WordRevealText
               lines={['한 분 한 분 소중히 모실 수 있도록', '참석 의사를 전해 주시면 감사하겠습니다.']}
-              revealStretch={1}
+              revealStretch={0.5}
               style={{ fontSize: '13px', fontWeight: 300, lineHeight: 1.8, color: 'var(--color-text)', marginBottom: '24px' }}
             />
             <button
@@ -940,7 +946,7 @@ export default function RSVPForm() {
             <SectionLabel animate={false}>마음 전하실 곳</SectionLabel>
             <WordRevealText
               lines={['참석이 어려우신 분들을 위해 기재했습니다.', '너그러운 마음으로 양해 부탁드립니다.']}
-              revealStretch={1}
+              revealStretch={0.5}
               style={{ fontSize: '13px', fontWeight: 300, lineHeight: 1.8, color: 'var(--color-text)', marginBottom: '20px' }}
             />
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
