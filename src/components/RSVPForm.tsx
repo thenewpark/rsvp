@@ -879,7 +879,8 @@ export default function RSVPForm() {
             }}>
               <video
                 ref={videoRef}
-                src="/bloom_scrub.mp4"
+                src="/bloom_scrub_scrub.mp4"
+                poster="/bloom_scrub_poster.jpg"
                 muted
                 playsInline
                 preload="auto"
