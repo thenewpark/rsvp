@@ -158,15 +158,47 @@ const koreanPoemColumns = [
   '그것을 견뎌냅시다.',
 ]
 
+const sectionLabelStyle: CSSProperties = {
+  fontSize: '14px',
+  fontWeight: 400,
+  letterSpacing: '0.04em',
+  color: 'var(--color-text-muted)',
+}
+
+const sectionBodyStyle: CSSProperties = {
+  fontSize: '14px',
+  fontWeight: 300,
+  lineHeight: 1.65,
+  color: 'var(--color-text)',
+}
+
+const subsectionLabelStyle: CSSProperties = {
+  fontSize: '12px',
+  fontWeight: 500,
+  lineHeight: 1.5,
+  letterSpacing: '0.04em',
+  color: 'var(--color-text-muted)',
+}
+
+const supportingTextStyle: CSSProperties = {
+  fontSize: '12px',
+  fontWeight: 300,
+  lineHeight: 1.7,
+  color: 'var(--color-text-muted)',
+}
+
+const fieldLabelStyle: CSSProperties = {
+  fontSize: '14px',
+  fontWeight: 300,
+  color: 'var(--color-text)',
+}
+
 // ── Section label ──────────────────────────────────────────────────────────────
 function SectionLabel({ children, animate = true }: { children: string; animate?: boolean }) {
   if (!animate) {
     return (
       <p style={{
-        fontSize: '14px',
-        fontWeight: 400,
-        letterSpacing: '0.04em',
-        color: 'var(--color-text-muted)',
+        ...sectionLabelStyle,
         marginBottom: '18px',
       }}>
         {children}
@@ -176,10 +208,7 @@ function SectionLabel({ children, animate = true }: { children: string; animate?
 
   return (
     <p data-word-reveal-group style={{
-      fontSize: '14px',
-      fontWeight: 400,
-      letterSpacing: '0.04em',
-      color: 'var(--color-text-muted)',
+      ...sectionLabelStyle,
       marginBottom: '18px',
     }}>
       <span style={{ display: 'block' }}>
@@ -291,11 +320,10 @@ function AccountBlock({ name, account }: { name: string; account: string }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-
-        <p style={{ fontSize: '12px', fontWeight: 300, lineHeight: 1.5, color: 'var(--color-text)', margin: 0 }}>
+        <p style={{ ...subsectionLabelStyle, margin: 0 }}>
           {name}
         </p>
-        <p style={{ fontSize: '12px', fontWeight: 300, lineHeight: 1.5, color: 'var(--color-text)', margin: 0 }}>
+        <p style={{ fontSize: '12px', fontWeight: 300, lineHeight: 1.7, color: 'var(--color-text)', margin: 0 }}>
           {account}
         </p>
       </div>
@@ -433,7 +461,7 @@ function RSVPModal({ onClose, onSuccess }: {
           borderBottom: '1px solid var(--color-border)',
           position: 'sticky', top: 0, background: 'white', zIndex: 1,
         }}>
-          <span style={{ fontSize: '14px', fontWeight: 300, letterSpacing: '0.04em', color: 'var(--color-text)' }}>
+          <span style={fieldLabelStyle}>
             참석 확인
           </span>
           <button onClick={onClose} style={{
@@ -454,7 +482,7 @@ function RSVPModal({ onClose, onSuccess }: {
             '2026년 5월 23일 토요일   11:00 - 16:00',
             '혼인 서약 12:00 | 식사 11:30 - 14:30'
           ].map(line => (
-            <span key={line} style={{ fontSize: '12px', fontWeight: 300, color: 'var(--color-text)', letterSpacing: '0.02em' }}>
+            <span key={line} style={{ ...supportingTextStyle, color: 'var(--color-text)', letterSpacing: '0.02em' }}>
               {line}
             </span>
           ))}
@@ -465,7 +493,7 @@ function RSVPModal({ onClose, onSuccess }: {
 
           {/* Name */}
           <div>
-            <p style={{ fontSize: '14px', fontWeight: 300, marginBottom: '8px', color: 'var(--color-text)' }}>성함 *</p>
+            <p style={{ ...fieldLabelStyle, marginBottom: '8px' }}>성함 *</p>
             <input
               type="text" value={name}
               onChange={e => setName(e.target.value)}
@@ -481,7 +509,7 @@ function RSVPModal({ onClose, onSuccess }: {
 
           {/* Time slot */}
           <div>
-            <p style={{ fontSize: '14px', fontWeight: 300, marginBottom: '12px', color: 'var(--color-text)' }}>
+            <p style={{ ...fieldLabelStyle, marginBottom: '12px' }}>
               편하신 식사 시간을 알려주세요.*
             </p>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
@@ -516,7 +544,7 @@ function RSVPModal({ onClose, onSuccess }: {
             opacity: extraVisible ? 1 : 0,
             transition: 'max-height 220ms ease-out, opacity 220ms ease-out',
           }}>
-            <p style={{ fontSize: '14px', fontWeight: 300, marginBottom: '8px', color: 'var(--color-text)' }}>
+            <p style={{ ...fieldLabelStyle, marginBottom: '8px' }}>
               참석하시는 인원 수를 알려주세요.
             </p>
             <div style={{ border: '1px solid var(--color-border)', display: 'flex', alignItems: 'center' }}>
@@ -983,22 +1011,20 @@ export default function RSVPForm() {
             <WordRevealText
               lines={['2026년 5월 23일 토요일', '11:00 – 16:00']}
               revealStretch={1}
-              style={{ fontSize: '14px', fontWeight: 300, lineHeight: 1.75, color: 'var(--color-text)', marginBottom: '20px' }}
+              style={{ ...sectionBodyStyle, lineHeight: 1.75, marginBottom: '20px' }}
             />
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr' }}>
               <WordRevealText
                 as="div"
                 lines={['혼인 서약', '12:00']}
                 revealStretch={1}
-                style={{ fontSize: '12px', fontWeight: 500, lineHeight: 1.75, color: 'var(--color-text-muted)', letterSpacing: '0.04em', marginBottom: '6px' }}
-              // style={{ fontSize: '12px', fontWeight: 300, lineHeight: 1.75, color: 'var(--color-text)' }}
+                style={{ ...subsectionLabelStyle, lineHeight: 1.75, marginBottom: '6px' }}
               />
               <WordRevealText
                 as="div"
                 lines={['식사', '11:30 – 14:30']}
                 revealStretch={1}
-                style={{ fontSize: '12px', fontWeight: 500, lineHeight: 1.75, color: 'var(--color-text-muted)', letterSpacing: '0.04em', marginBottom: '6px' }}
-              // style={{ fontSize: '12px', fontWeight: 300, lineHeight: 1.75, color: 'var(--color-text)' }}
+                style={{ ...subsectionLabelStyle, lineHeight: 1.75, marginBottom: '6px' }}
               />
             </div>
           </div>
@@ -1014,7 +1040,7 @@ export default function RSVPForm() {
               <WordRevealText
                 lines={['서울시 서대문구 연희동 95-10']}
                 revealStretch={1}
-                style={{ fontSize: '14px', fontWeight: 300, lineHeight: 1.9, color: 'var(--color-text)', marginBottom: '4px' }}
+                style={{ ...sectionBodyStyle, lineHeight: 1.9, marginBottom: '4px' }}
               />
               <CopyButton text="서울시 서대문구 연희동 95-10" label="주소 복사" compact />
             </div>
@@ -1023,14 +1049,14 @@ export default function RSVPForm() {
               <WordRevealText
                 lines={['(도로명) 서울시 서대문구 연희로27다길 10-15']}
                 revealStretch={0.5}
-                style={{ fontSize: '12px', fontWeight: 300, lineHeight: 1.7, color: 'var(--color-text-muted)', flex: 1 }}
+                style={{ ...supportingTextStyle, flex: 1 }}
               />
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px' }}>
+            <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: '12px' }}>
               <WordRevealText
                 lines={['Tel. 010-7359-4240 (WWL 스튜디오)']}
                 revealStretch={0.5}
-                style={{ fontSize: '12px', fontWeight: 300, lineHeight: 1.7, color: 'var(--color-text-muted)', flex: 1, marginBottom: 0 }}
+                style={{ ...supportingTextStyle, flex: 1, marginBottom: 0 }}
               />
               <CallButton phone="010-7359-4240" label="전화하기" />
             </div>
@@ -1042,7 +1068,7 @@ export default function RSVPForm() {
             <WordRevealText
               lines={['대중교통']}
               revealStretch={0.5}
-              style={{ fontSize: '12px', fontWeight: 500, lineHeight: 1.5, color: 'var(--color-text-muted)', letterSpacing: '0.04em', marginBottom: '6px' }}
+              style={{ ...subsectionLabelStyle, marginBottom: '6px' }}
             />
             <WordRevealText
               lines={[
@@ -1052,21 +1078,19 @@ export default function RSVPForm() {
               ]}
               revealStretch={0.5}
               style={{
-                fontSize: '14px', fontWeight: 300, lineHeight: 1.65,
-                color: 'var(--color-text)', wordBreak: 'keep-all',
+                ...sectionBodyStyle, wordBreak: 'keep-all',
               }}
             />
             <WordRevealText
               lines={['자차']}
               revealStretch={0.5}
-              style={{ fontSize: '12px', fontWeight: 500, lineHeight: 1.5, color: 'var(--color-text-muted)', letterSpacing: '0.04em', marginTop: '20px', marginBottom: '6px' }}
+              style={{ ...subsectionLabelStyle, marginTop: '20px', marginBottom: '6px' }}
             />
             <WordRevealText
               lines={['단독주택으로 주차 공간이 마련되어 있지 않습니다.', '인근 공영주차장을 이용해 주시면 감사하겠습니다.']}
               revealStretch={0.5}
               style={{
-                fontSize: '14px', fontWeight: 300, lineHeight: 1.65,
-                color: 'var(--color-text)', wordBreak: 'keep-all',
+                ...sectionBodyStyle, wordBreak: 'keep-all',
               }}
             />
           </div>
@@ -1080,7 +1104,7 @@ export default function RSVPForm() {
             <WordRevealText
               lines={['한 분 한 분 소중히 모실 수 있도록', '참석 의사를 전해 주시면 감사하겠습니다.']}
               revealStretch={0.5}
-              style={{ fontSize: '14px', fontWeight: 300, lineHeight: 1.65, color: 'var(--color-text)', marginBottom: '24px' }}
+              style={{ ...sectionBodyStyle, marginBottom: '24px' }}
             />
             <button
               className="rsvp-open-btn"
@@ -1104,7 +1128,7 @@ export default function RSVPForm() {
             <WordRevealText
               lines={['참석이 어려우신 분들을 위해 기재했습니다.', '너그러운 마음으로 양해 부탁드립니다.']}
               revealStretch={0.5}
-              style={{ fontSize: '14px', fontWeight: 300, lineHeight: 1.65, color: 'var(--color-text)', marginBottom: '20px' }}
+              style={{ ...sectionBodyStyle, marginBottom: '20px' }}
             />
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', alignItems: 'start' }}>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
