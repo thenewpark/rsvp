@@ -994,7 +994,7 @@ export default function RSVPForm() {
               >
                 {['SONNET 116,', 'WILLIAM SHAKESPEARE'].map(line => (
                   <span key={line} data-reveal-line style={{
-                    fontFamily: '"Cormorant Garamond", Georgia, "Times New Roman", serif',
+                    fontFamily: '"Marcellus", Georgia, "Times New Roman", serif',
                     fontSize: 'clamp(6px, 2.4vw, 8px)', fontWeight: 400,
                     letterSpacing: '0.04em', lineHeight: 1.15, whiteSpace: 'nowrap',
                   }}>
