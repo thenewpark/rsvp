@@ -959,23 +959,39 @@ export default function RSVPForm() {
               display: 'flex',
               alignItems: 'flex-end',
             }}>
-              <video
-                ref={videoRef}
-                src="/bloom_scrub_scrub.mp4"
-                poster="/bloom_scrub_poster.jpg"
-                muted
-                playsInline
-                preload="auto"
-                style={{
-                  width: '100%',
-                  height: 'auto',
-                  display: 'block',
-                  pointerEvents: 'none',
-                  opacity: isHeroVideoReady ? 1 : 0,
-                  transform: isHeroVideoReady ? 'translateY(0)' : 'translateY(8px)',
-                  transition: 'opacity 320ms ease-out, transform 420ms ease-out',
-                }}
-              />
+              <div style={{ position: 'relative', width: '100%' }}>
+                <img
+                  src="/bloom_scrub_poster.jpg"
+                  alt=""
+                  aria-hidden="true"
+                  style={{
+                    width: '100%',
+                    height: 'auto',
+                    display: 'block',
+                    opacity: isHeroVideoReady ? 0 : 1,
+                    transition: 'opacity 220ms ease-out',
+                  }}
+                />
+                <video
+                  ref={videoRef}
+                  src="/bloom_scrub_scrub.mp4"
+                  poster="/bloom_scrub_poster.jpg"
+                  muted
+                  playsInline
+                  preload="auto"
+                  style={{
+                    position: 'absolute',
+                    inset: 0,
+                    width: '100%',
+                    height: '100%',
+                    display: 'block',
+                    objectFit: 'contain',
+                    pointerEvents: 'none',
+                    opacity: isHeroVideoReady ? 1 : 0,
+                    transition: 'opacity 320ms ease-out',
+                  }}
+                />
+              </div>
             </div>
           </section>
         </div>
