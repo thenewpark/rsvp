@@ -427,19 +427,19 @@ function RSVPModal({ onClose, onSuccess }: {
     setIsLoading(true)
     setErrorMsg(null)
     const submittedName = name.trim()
+    const submittedGuestCount = guestCount.trim() === '' ? '1' : guestCount.trim()
     try {
       const res = await fetch('/api/submit', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           name: submittedName, timeSlot: selected,
-          guestCount: guestCount.trim() === '' ? '1' : guestCount,
+          guestCount: submittedGuestCount,
           submittedAt: new Date().toISOString(),
         }),
       })
       if (!res.ok) throw new Error('server error')
-      const guests = guestCount && guestCount !== '1' ? ` +${parseInt(guestCount) - 1}명` : ''
-      onSuccess(`${submittedName} · ${selected}${guests} 참석이 확인되었습니다.`)
+      onSuccess(`${submittedName}님, ${submittedGuestCount}명 참석이 확인되었습니다.`)
       onClose()
     } catch {
       setErrorMsg('오류가 발생했습니다. 잠시 후 다시 시도해주세요.')
