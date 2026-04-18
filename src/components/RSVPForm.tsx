@@ -724,18 +724,53 @@ export default function RSVPForm() {
 
     if (prefersReducedMotion) return
 
+    let isDisposed = false
+    let isVideoScrubReady = false
+    let revealFrameId = 0
+    let revealVideoFrameCallbackId: number | null = null
+
+    const revealHeroVideo = () => {
+      const reveal = () => {
+        revealFrameId = requestAnimationFrame(() => {
+          if (!isDisposed) setIsHeroVideoReady(true)
+        })
+      }
+
+      if ('requestVideoFrameCallback' in video) {
+        revealVideoFrameCallbackId = video.requestVideoFrameCallback(() => {
+          revealVideoFrameCallbackId = null
+          reveal()
+        })
+        return
+      }
+
+      reveal()
+    }
+
+    const syncVideoTime = (time: number) => {
+      if (!isVideoScrubReady || !video.duration || !Number.isFinite(video.duration)) return
+      video.currentTime = time
+    }
+
     const syncVideoToStartFrame = (onReady?: () => void) => {
-      const reveal = () => requestAnimationFrame(() => setIsHeroVideoReady(true))
+      let hasSettled = false
+      const finish = () => {
+        if (hasSettled || isDisposed) return
+        hasSettled = true
+        isVideoScrubReady = true
+        revealHeroVideo()
+        onReady?.()
+      }
+
+      isVideoScrubReady = false
 
       if (!video.duration || !Number.isFinite(video.duration)) {
-        reveal()
-        onReady?.()
+        finish()
         return
       }
 
       const handleSeeked = () => {
-        reveal()
-        onReady?.()
+        finish()
       }
 
       video.addEventListener('seeked', handleSeeked, { once: true })
@@ -745,7 +780,7 @@ export default function RSVPForm() {
       requestAnimationFrame(() => {
         if (Math.abs(video.currentTime - video.duration) < 0.05) {
           video.removeEventListener('seeked', handleSeeked)
-          handleSeeked()
+          finish()
         }
       })
     }
@@ -758,12 +793,12 @@ export default function RSVPForm() {
         scrub: true,
         invalidateOnRefresh: true,
         onUpdate: self => {
-          if (video.duration) video.currentTime = video.duration * (1 - self.progress)  // 5s → 0s
+          if (video.duration) syncVideoTime(video.duration * (1 - self.progress))  // 5s → 0s
         },
         // Guarantee exact position at section boundaries regardless of
         // async seek timing or fast-scroll edge cases.
-        onLeave: () => { video.currentTime = 0 },
-        onEnterBack: () => { video.currentTime = video.duration },
+        onLeave: () => { syncVideoTime(0) },
+        onEnterBack: () => { syncVideoTime(video.duration) },
       })
     }
 
@@ -782,8 +817,27 @@ export default function RSVPForm() {
       }
     }
 
-    if (video.readyState >= 1) create()
-    else video.addEventListener('loadedmetadata', create, { once: true })
+    const handleVideoReady = () => {
+      video.removeEventListener('loadeddata', handleVideoReady)
+      video.removeEventListener('canplay', handleVideoReady)
+      create()
+    }
+
+    if (video.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA) create()
+    else {
+      video.addEventListener('loadeddata', handleVideoReady, { once: true })
+      video.addEventListener('canplay', handleVideoReady, { once: true })
+    }
+
+    return () => {
+      isDisposed = true
+      video.removeEventListener('loadeddata', handleVideoReady)
+      video.removeEventListener('canplay', handleVideoReady)
+      cancelAnimationFrame(revealFrameId)
+      if (revealVideoFrameCallbackId !== null) {
+        video.cancelVideoFrameCallback(revealVideoFrameCallbackId)
+      }
+    }
   }, { scope: rootRef })
 
   useEffect(() => {
@@ -918,9 +972,8 @@ export default function RSVPForm() {
                   display: 'block',
                   pointerEvents: 'none',
                   opacity: isHeroVideoReady ? 1 : 0,
-                  transform: isHeroVideoReady ? 'translateY(0)' : 'translateY(16px)',
-                  filter: isHeroVideoReady ? 'blur(0px)' : 'blur(12px)',
-                  transition: 'opacity 600ms ease-out, transform 780ms ease-out, filter 780ms ease-out',
+                  transform: isHeroVideoReady ? 'translateY(0)' : 'translateY(8px)',
+                  transition: 'opacity 320ms ease-out, transform 420ms ease-out',
                 }}
               />
             </div>
