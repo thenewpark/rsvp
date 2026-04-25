@@ -43,6 +43,9 @@ declare global {
 }
 
 const KAKAO_SDK_SRC = 'https://t1.kakaocdn.net/kakao_js_sdk/2.7.5/kakao.min.js'
+const HERO_VIDEO_SRC = '/bloom_scrub_scrub_960.mp4'
+const HERO_VIDEO_FPS = 24
+const HERO_VIDEO_FRAME_DURATION = 1 / HERO_VIDEO_FPS
 
 const STYLES = `
   .slot-btn {
@@ -726,8 +729,16 @@ export default function RSVPForm() {
 
     let isDisposed = false
     let isVideoScrubReady = false
+    let hasInitializedVideo = false
     let revealFrameId = 0
+    let scrubFrameId = 0
     let revealVideoFrameCallbackId: number | null = null
+    let pendingVideoTime = 0
+
+    const getVideoEndFrameTime = () => {
+      if (!video.duration || !Number.isFinite(video.duration)) return 0
+      return Math.max(video.duration - HERO_VIDEO_FRAME_DURATION, 0)
+    }
 
     const revealHeroVideo = () => {
       const reveal = () => {
@@ -747,9 +758,35 @@ export default function RSVPForm() {
       reveal()
     }
 
-    const syncVideoTime = (time: number) => {
-      if (!isVideoScrubReady || !video.duration || !Number.isFinite(video.duration)) return
-      video.currentTime = time
+    const flushPendingVideoTime = (force = false) => {
+      scrubFrameId = 0
+
+      const endFrameTime = getVideoEndFrameTime()
+      if (!isVideoScrubReady || !endFrameTime) return
+
+      const clampedTime = Math.max(0, Math.min(endFrameTime, pendingVideoTime))
+      const snappedTime = Math.round(clampedTime * HERO_VIDEO_FPS) / HERO_VIDEO_FPS
+
+      if (!force && video.seeking) {
+        scrubFrameId = requestAnimationFrame(() => { flushPendingVideoTime() })
+        return
+      }
+
+      if (!force && Math.abs(video.currentTime - snappedTime) < HERO_VIDEO_FRAME_DURATION / 2) return
+      video.currentTime = snappedTime
+    }
+
+    const syncVideoTime = (time: number, force = false) => {
+      pendingVideoTime = time
+      if (force) {
+        cancelAnimationFrame(scrubFrameId)
+        scrubFrameId = 0
+        flushPendingVideoTime(true)
+        return
+      }
+
+      if (scrubFrameId) return
+      scrubFrameId = requestAnimationFrame(() => { flushPendingVideoTime() })
     }
 
     const syncVideoToStartFrame = (onReady?: () => void) => {
@@ -764,7 +801,8 @@ export default function RSVPForm() {
 
       isVideoScrubReady = false
 
-      if (!video.duration || !Number.isFinite(video.duration)) {
+      const endFrameTime = getVideoEndFrameTime()
+      if (!endFrameTime) {
         finish()
         return
       }
@@ -774,11 +812,11 @@ export default function RSVPForm() {
       }
 
       video.addEventListener('seeked', handleSeeked, { once: true })
-      video.currentTime = video.duration
+      video.currentTime = endFrameTime
 
       // Some browsers may already be at the target time and skip `seeked`.
       requestAnimationFrame(() => {
-        if (Math.abs(video.currentTime - video.duration) < 0.05) {
+        if (Math.abs(video.currentTime - endFrameTime) < HERO_VIDEO_FRAME_DURATION / 2) {
           video.removeEventListener('seeked', handleSeeked)
           finish()
         }
@@ -793,47 +831,58 @@ export default function RSVPForm() {
         scrub: true,
         invalidateOnRefresh: true,
         onUpdate: self => {
-          if (video.duration) syncVideoTime(video.duration * (1 - self.progress))  // 5s → 0s
+          const endFrameTime = getVideoEndFrameTime()
+          if (endFrameTime) syncVideoTime(endFrameTime * (1 - self.progress))
         },
         // Guarantee exact position at section boundaries regardless of
         // async seek timing or fast-scroll edge cases.
-        onLeave: () => { syncVideoTime(0) },
-        onEnterBack: () => { syncVideoTime(video.duration) },
+        onLeave: () => { syncVideoTime(0, true) },
+        onEnterBack: () => {
+          const endFrameTime = getVideoEndFrameTime()
+          if (endFrameTime) syncVideoTime(endFrameTime, true)
+        },
       })
     }
 
-    const create = () => {
-      // iOS Safari does not allow currentTime seeks until play() has been called
-      // at least once. Call play() to unlock seek capability, then immediately
-      // pause and position the video at the end frame.
+    const finalizeVideoSetup = () => {
+      if (hasInitializedVideo || isDisposed) return
+      hasInitializedVideo = true
+      video.pause()
+      syncVideoToStartFrame(setupTrigger)
+    }
+
+    const handleLoadedMetadata = () => {
+      finalizeVideoSetup()
+    }
+
+    const primeVideo = () => {
+      // Prime immediately instead of waiting for canplay/loadeddata.
+      // iOS Safari may not fire those events until playback has begun.
       const playPromise = video.play()
       if (playPromise) {
         playPromise
-          .then(() => { video.pause(); syncVideoToStartFrame(setupTrigger) })
-          .catch(() => { syncVideoToStartFrame(setupTrigger) })  // play blocked (e.g. policy) – try anyway
-      } else {
-        video.pause()
-        syncVideoToStartFrame(setupTrigger)
+          .then(() => { finalizeVideoSetup() })
+          .catch(() => {
+            if (video.readyState >= HTMLMediaElement.HAVE_METADATA) {
+              finalizeVideoSetup()
+              return
+            }
+            video.addEventListener('loadedmetadata', handleLoadedMetadata, { once: true })
+          })
+        return
       }
+
+      finalizeVideoSetup()
     }
 
-    const handleVideoReady = () => {
-      video.removeEventListener('loadeddata', handleVideoReady)
-      video.removeEventListener('canplay', handleVideoReady)
-      create()
-    }
-
-    if (video.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA) create()
-    else {
-      video.addEventListener('loadeddata', handleVideoReady, { once: true })
-      video.addEventListener('canplay', handleVideoReady, { once: true })
-    }
+    primeVideo()
 
     return () => {
       isDisposed = true
-      video.removeEventListener('loadeddata', handleVideoReady)
-      video.removeEventListener('canplay', handleVideoReady)
+      video.removeEventListener('loadedmetadata', handleLoadedMetadata)
       cancelAnimationFrame(revealFrameId)
+      cancelAnimationFrame(scrubFrameId)
+      video.pause()
       if (revealVideoFrameCallbackId !== null) {
         video.cancelVideoFrameCallback(revealVideoFrameCallbackId)
       }
@@ -964,6 +1013,9 @@ export default function RSVPForm() {
                   src="/bloom_scrub_poster.jpg"
                   alt=""
                   aria-hidden="true"
+                  loading="eager"
+                  decoding="async"
+                  fetchPriority="high"
                   style={{
                     width: '100%',
                     height: 'auto',
@@ -974,11 +1026,11 @@ export default function RSVPForm() {
                 />
                 <video
                   ref={videoRef}
-                  src="/bloom_scrub_scrub.mp4"
+                  src={HERO_VIDEO_SRC}
                   poster="/bloom_scrub_poster.jpg"
                   muted
                   playsInline
-                  preload="auto"
+                  preload="metadata"
                   style={{
                     position: 'absolute',
                     inset: 0,
